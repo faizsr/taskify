@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:taskify/src/config/di/injections.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/app_background.dart';
@@ -16,7 +18,13 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(Duration(milliseconds: 2500));
-      if (mounted) context.go(AppRoutes.onboarding);
+      if (mounted) {
+        if (sl<FirebaseAuth>().currentUser != null) {
+          context.go(AppRoutes.home);
+        } else {
+          context.go(AppRoutes.onboarding);
+        }
+      }
     });
     super.initState();
   }
