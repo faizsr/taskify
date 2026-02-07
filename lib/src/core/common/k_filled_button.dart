@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/utils/responsive_helper.dart';
@@ -9,12 +10,14 @@ class KFilledButton extends StatelessWidget {
     this.onPressed,
     this.bgColor = AppColors.blue,
     this.fgColor,
+    this.isLoading = false,
   });
 
   final String text;
   final void Function()? onPressed;
   final Color bgColor;
   final Color? fgColor;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +33,9 @@ class KFilledButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: Text(text),
+        child: isLoading
+            ? CupertinoActivityIndicator(color: AppColors.white)
+            : Text(text),
       ),
     );
   }

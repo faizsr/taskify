@@ -1,16 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
+import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/app_background.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/core/common/k_rich_text.dart';
 import 'package:taskify/src/core/common/k_text_field.dart';
+import 'package:taskify/src/core/utils/input_validator.dart';
 import 'package:taskify/src/core/utils/responsive_helper.dart';
+import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final emailCtlr = TextEditingController();
+  final nameCtlr = TextEditingController();
+  final passwordCtlr = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  Future<void> _onSignUpPressed() async {
+    if (formKey.currentState!.validate()) {
+      final authCtlr = context.read<AuthController>();
+      final user = UserEntity(
+        name: nameCtlr.text,
+        email: emailCtlr.text,
+        password: passwordCtlr.text,
+      );
+      final result = await authCtlr.register(user);
+      if (result && mounted) context.go(AppRoutes.home);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,41 +77,69 @@ class RegisterPage extends StatelessWidget {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    vSpace40,
-                    Text(
-                      "Create your account",
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    vSpace4,
-                    Text(
-                      'Sign up to get started',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-                    ),
-                    vSpace40,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      vSpace40,
+                      Text(
+                        "Create your account",
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      vSpace4,
+                      Text(
+                        'Sign up to get started',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
+                      ),
+                      vSpace40,
 
-                    KTextField(hintText: 'Email Address'),
-                    vSpace16,
-                    KTextField(hintText: 'Your name'),
-                    vSpace16,
-                    KTextField(hintText: 'Password', isPassword: true),
-                    vSpace20,
-                    KFilledButton(text: 'Sign Up', onPressed: () {}),
-                    vSpace12,
+                      KTextField(
+                        hintText: 'Email Address',
+                        controller: emailCtlr,
+                        validator: InputValidator.email,
+                        autovalidateMode: AutovalidateMode.onUnfocus,
+                      ),
+                      vSpace16,
+                      KTextField(
+                        hintText: 'Your name',
+                        controller: nameCtlr,
+                        validator: InputValidator.name,
+                        autovalidateMode: AutovalidateMode.onUnfocus,
+                      ),
+                      vSpace16,
+                      KTextField(
+                        hintText: 'Password',
+                        isPassword: true,
+                        controller: passwordCtlr,
+                        validator: InputValidator.password,
+                        autovalidateMode: AutovalidateMode.onUnfocus,
+                      ),
+                      vSpace20,
+                      Selector<AuthController, bool>(
+                        selector: (context, ctlr) => ctlr.isBtnLoading,
+                        builder: (context, value, child) {
+                          return KFilledButton(
+                            text: 'Sign Up',
+                            isLoading: value,
+                            onPressed: _onSignUpPressed,
+                          );
+                        },
+                      ),
+                      vSpace12,
 
-                    Spacer(),
-                    KRichText(
-                      text1: "Already have an account? ",
-                      text2: "Sign In",
-                      padding: EdgeInsets.only(bottom: 8),
-                      onTap: () => context.pop(),
-                    ),
-                    vSpace16,
-                  ],
+                      Spacer(),
+                      KRichText(
+                        text1: "Already have an account? ",
+                        text2: "Sign In",
+                        padding: EdgeInsets.only(bottom: 8),
+                        onTap: () => context.pop(),
+                      ),
+                      vSpace16,
+                    ],
+                  ),
                 ),
               ),
             ),
