@@ -28,11 +28,15 @@ class OnboardingPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Taskify',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
+                  Hero(
+                    tag: 'logo',
+                    child: Text(
+                      'Taskify',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                   Text(
