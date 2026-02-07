@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:taskify/src/config/constants/app_assets.dart';
+import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
-import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/app_background.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
+import 'package:taskify/src/core/common/k_rich_text.dart';
+import 'package:taskify/src/core/common/k_text_field.dart';
 import 'package:taskify/src/core/utils/responsive_helper.dart';
 
-class OnboardingPage extends StatelessWidget {
-  const OnboardingPage({super.key});
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,26 +25,7 @@ class OnboardingPage extends StatelessWidget {
         ),
         body: Column(
           children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Taskify',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Task made simple.',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildHeader(context),
             Container(
               height: 12,
               width: w * 0.9,
@@ -70,31 +52,68 @@ class OnboardingPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Spacer(),
-                    Transform.scale(
-                      scale: 1.2,
-                      child: Image.asset(AppAssets.taskManagement),
-                    ),
-                    Spacer(),
+                    vSpace40,
                     Text(
-                      'Smart collaboration for everyday work',
-                      textAlign: TextAlign.center,
+                      "Create your account",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    vSpace32,
-                    KFilledButton(
-                      text: 'Get Started',
-                      fgColor: AppColors.blue,
-                      bgColor: AppColors.lightBlue.withValues(alpha: 0.2),
-                      onPressed: () => context.push(AppRoutes.login),
+                    vSpace4,
+                    Text(
+                      'Sign up to get started',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
                     ),
                     vSpace40,
+
+                    KTextField(hintText: 'Email Address'),
+                    vSpace16,
+                    KTextField(hintText: 'Your name'),
+                    vSpace16,
+                    KTextField(hintText: 'Password', isPassword: true),
+                    vSpace20,
+                    KFilledButton(text: 'Sign Up', onPressed: () {}),
+                    vSpace12,
+
+                    Spacer(),
+                    KRichText(
+                      text1: "Already have an account? ",
+                      text2: "Sign In",
+                      padding: EdgeInsets.only(bottom: 8),
+                      onTap: () => context.pop(),
+                    ),
+                    vSpace16,
                   ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Expanded _buildHeader(BuildContext context) {
+    return Expanded(
+      child: Stack(
+        children: [
+          Positioned(
+            left: 8,
+            child: IconButton(
+              onPressed: () => context.pop(),
+              icon: Icon(SolarIconsOutline.arrowLeft, color: AppColors.white),
+            ),
+          ),
+          Center(
+            child: Text(
+              'Taskify',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: AppColors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

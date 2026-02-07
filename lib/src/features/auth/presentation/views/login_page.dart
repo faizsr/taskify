@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:taskify/src/config/constants/app_assets.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/app_background.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
+import 'package:taskify/src/core/common/k_rich_text.dart';
+import 'package:taskify/src/core/common/k_text_field.dart';
 import 'package:taskify/src/core/utils/responsive_helper.dart';
 
-class OnboardingPage extends StatelessWidget {
-  const OnboardingPage({super.key});
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,23 +26,14 @@ class OnboardingPage extends StatelessWidget {
         body: Column(
           children: [
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Taskify',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+              child: Center(
+                child: Text(
+                  'Taskify',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(
-                    'Task made simple.',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             Container(
@@ -68,32 +60,57 @@ class OnboardingPage extends StatelessWidget {
                   ),
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Spacer(),
-                    Transform.scale(
-                      scale: 1.2,
-                      child: Image.asset(AppAssets.taskManagement),
-                    ),
-                    Spacer(),
+                    vSpace40,
                     Text(
-                      'Smart collaboration for everyday work',
-                      textAlign: TextAlign.center,
+                      "Let's Get Started",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    vSpace32,
-                    KFilledButton(
-                      text: 'Get Started',
-                      fgColor: AppColors.blue,
-                      bgColor: AppColors.lightBlue.withValues(alpha: 0.2),
-                      onPressed: () => context.push(AppRoutes.login),
+                    vSpace4,
+                    Text(
+                      'Sign in to your account',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
                     ),
                     vSpace40,
+
+                    KTextField(hintText: 'Email Address'),
+                    vSpace16,
+                    KTextField(hintText: 'Password', isPassword: true),
+                    vSpace8,
+                    buildForgotPasswordBtn(context),
+                    vSpace20,
+                    KFilledButton(text: 'Sign In', onPressed: () {}),
+
+                    Spacer(),
+                    KRichText(
+                      text1: "Don't have an account? ",
+                      text2: "Sign Up",
+                      padding: EdgeInsets.only(bottom: 8),
+                      onTap: () => context.push(AppRoutes.register),
+                    ),
+                    vSpace16,
                   ],
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  GestureDetector buildForgotPasswordBtn(BuildContext context) {
+    return GestureDetector(
+      onTap: () {},
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          'Forgot Password?',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.blue),
         ),
       ),
     );
