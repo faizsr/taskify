@@ -104,11 +104,11 @@ class _KTextFieldState extends State<KTextField> {
         constraints: BoxConstraints(maxHeight: widget.height),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.lighGrey),
+          borderSide: BorderSide(color: AppColors.lightGrey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.lighGrey),
+          borderSide: BorderSide(color: AppColors.lightGrey),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

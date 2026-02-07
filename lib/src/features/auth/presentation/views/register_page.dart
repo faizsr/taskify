@@ -36,7 +36,7 @@ class _RegisterPageState extends State<RegisterPage> {
         password: passwordCtlr.text,
       );
       final result = await authCtlr.register(user);
-      if (result && mounted) context.go(AppRoutes.home);
+      if (result && mounted) context.go(AppRoutes.boards);
     }
   }
 

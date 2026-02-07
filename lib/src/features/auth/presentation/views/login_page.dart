@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordCtlr.text,
       );
       final result = await authCtlr.login(user);
-      if (result && mounted) context.go(AppRoutes.home);
+      if (result && mounted) context.go(AppRoutes.boards);
     }
   }
 

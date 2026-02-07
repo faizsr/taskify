@@ -20,7 +20,7 @@ class _SplashPageState extends State<SplashPage> {
       await Future.delayed(Duration(milliseconds: 2500));
       if (mounted) {
         if (sl<FirebaseAuth>().currentUser != null) {
-          context.go(AppRoutes.home);
+          context.go(AppRoutes.boards);
         } else {
           context.go(AppRoutes.onboarding);
         }
@@ -34,6 +34,10 @@ class _SplashPageState extends State<SplashPage> {
     return AppBackground(
       child: Scaffold(
         backgroundColor: AppColors.transparent,
+        appBar: AppBar(
+          backgroundColor: AppColors.transparent,
+          toolbarHeight: 0,
+        ),
         body: Center(
           child: Hero(
             tag: 'logo',
