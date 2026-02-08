@@ -6,4 +6,6 @@ class AppRoutes {
   static const String register = '/register';
 
   static const String boards = '/boards';
+  static const String createBoard = '/board/create';
+  static const String boardDetail = '/board/detail';
 }

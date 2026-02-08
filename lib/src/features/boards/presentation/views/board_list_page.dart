@@ -6,6 +6,7 @@ import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/di/injections.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
+import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/features/boards/presentation/widgets/board_card.dart';
 
 class BoardListPage extends StatelessWidget {
@@ -34,22 +35,25 @@ class BoardListPage extends StatelessWidget {
     );
   }
 
-  Align _buildTitle(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
-        decoration: BoxDecoration(
-          color: AppColors.blue.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
+  Widget _buildTitle(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
           'Your Boards',
           style: Theme.of(
             context,
-          ).textTheme.titleSmall?.copyWith(color: AppColors.black),
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
-      ),
+        KFilledButton(
+          width: 0,
+          text: 'Create',
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+          onPressed: () {
+            context.push(AppRoutes.createBoard);
+          },
+        ),
+      ],
     );
   }
 
@@ -58,14 +62,10 @@ class BoardListPage extends StatelessWidget {
       leadingWidth: 0,
       actions: [
         IconButton(
-          icon: Icon(Icons.add_rounded),
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.blue,
-            foregroundColor: AppColors.white,
-          ),
+          icon: Icon(SolarIconsOutline.logout),
           onPressed: () {
             sl<FirebaseAuth>().signOut();
-            context.go(AppRoutes.login);
+            context.pop();
           },
         ),
         hSpace4,

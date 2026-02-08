@@ -1,68 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
+import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 
 class BoardCard extends StatelessWidget {
-  const BoardCard({super.key});
+  final String boardId;
+  final String boardTitle;
+  final String createdBy;
+  final String createdDate;
+
+  const BoardCard({
+    super.key,
+    this.boardId = '1',
+    this.boardTitle = 'Project One',
+    this.createdBy = 'John',
+    this.createdDate = '18 Jan 2026',
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.lightGrey),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.lightBlue.withValues(alpha: 0.1),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Project One',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      'Created by: John',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.lightBlue,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '18 Jan 2026',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-                ),
-              ],
+    return GestureDetector(
+      onTap: () {
+        context.push(AppRoutes.boardDetail);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.lightGrey),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.lightBlue.withValues(alpha: 0.1),
+              blurRadius: 10,
             ),
-          ),
-          Divider(height: 1, color: AppColors.lightGrey),
-          ListView.separated(
-            itemCount: 2,
-            shrinkWrap: true,
-            padding: EdgeInsets.all(12),
-            physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (context, index) => vSpace12,
-            itemBuilder: (context, index) {
-              return _buildTaskCard(context);
-            },
-          ),
-        ],
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        boardTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        'Created by: $createdBy',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.lightBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    createdDate,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, color: AppColors.lightGrey),
+            ListView.separated(
+              itemCount: 2,
+              shrinkWrap: true,
+              padding: EdgeInsets.all(12),
+              physics: const NeverScrollableScrollPhysics(),
+              separatorBuilder: (context, index) => vSpace12,
+              itemBuilder: (context, index) {
+                return _buildTaskCard(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

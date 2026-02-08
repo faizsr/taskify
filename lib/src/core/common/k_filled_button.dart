@@ -11,6 +11,8 @@ class KFilledButton extends StatelessWidget {
     this.bgColor = AppColors.blue,
     this.fgColor,
     this.isLoading = false,
+    this.width,
+    this.padding,
   });
 
   final String text;
@@ -18,17 +20,19 @@ class KFilledButton extends StatelessWidget {
   final Color bgColor;
   final Color? fgColor;
   final bool isLoading;
+  final double? width;
+  final EdgeInsets? padding;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: ResponsiveHelper.getWidth(context),
+      width: width == 0 ? null : ResponsiveHelper.getWidth(context),
       child: FilledButton(
         onPressed: onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: bgColor,
           foregroundColor: fgColor,
-          padding: EdgeInsets.all(16),
+          padding: padding ?? EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
