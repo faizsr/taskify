@@ -7,11 +7,14 @@ import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/k_drop_down_menu.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/core/common/k_text_field.dart';
+import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
 class CreateBoardPage extends StatefulWidget {
-  const CreateBoardPage({super.key});
+  const CreateBoardPage({super.key, this.board});
+
+  final BoardEntity? board;
 
   @override
   State<CreateBoardPage> createState() => _CreateBoardPageState();
@@ -25,18 +28,39 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
 
   List<String> members = [];
 
-  Future<void> _onCreatePressed() async {
+  Future<void> _onBtnPressed() async {
     if (formKey.currentState!.validate()) {
       final boardCtlr = context.read<BoardController>();
-      final board = BoardEntity(
-        title: titleCtlr.text,
-        description: descriptionCtlr.text,
-        members: members,
-        createdAt: DateTime.now(),
-      );
-      await boardCtlr.createBoard(board);
+
+      if (widget.board != null) {
+        final updatedBoard = BoardEntity(
+          id: widget.board!.id,
+          title: titleCtlr.text,
+          description: descriptionCtlr.text,
+          members: members,
+        );
+        await boardCtlr.updateBoard(updatedBoard);
+      } else {
+        final newBoard = BoardEntity(
+          title: titleCtlr.text,
+          description: descriptionCtlr.text,
+          members: members,
+          createdAt: DateTime.now(),
+        );
+        await boardCtlr.createBoard(newBoard);
+      }
       if (mounted) context.pop();
     }
+  }
+
+  @override
+  void initState() {
+    if (widget.board != null) {
+      members = widget.board!.members;
+      titleCtlr.text = widget.board!.title;
+      descriptionCtlr.text = widget.board!.description;
+    }
+    super.initState();
   }
 
   @override
@@ -45,7 +69,7 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
       appBar: AppBar(
         titleSpacing: 0,
         centerTitle: true,
-        title: Text('Create new board'),
+        title: Text(widget.board != null ? 'Edit board' : 'Create new board'),
         leading: IconButton(
           onPressed: () => context.pop(),
           icon: Icon(SolarIconsOutline.arrowLeft),
@@ -78,9 +102,9 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
               selector: (context, controller) => controller.isBtnLoading,
               builder: (context, isLoading, child) {
                 return KFilledButton(
-                  text: 'Create',
+                  text: widget.board != null ? 'Update' : 'Create',
                   isLoading: isLoading,
-                  onPressed: _onCreatePressed,
+                  onPressed: _onBtnPressed,
                 );
               },
             ),
@@ -98,33 +122,53 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
         vSpace4,
 
         if (members.isNotEmpty) ...[
-          Wrap(
-            spacing: 8,
-            children: List.generate(members.length, (index) {
-              return _buildMemberEmailCard(members[index]);
-            }),
+          Selector<BoardController, List<UserEntity>>(
+            selector: (context, ctlr) => ctlr.allUsers,
+            builder: (context, value, child) {
+              return Wrap(
+                spacing: 8,
+                children: List.generate(members.length, (index) {
+                  final user = value.firstWhere(
+                    (e) => e.uid == members[index],
+                    orElse: () => UserEntity(),
+                  );
+                  return _buildMemberEmailCard(user.email, user.uid);
+                }),
+              );
+            },
           ),
           vSpace16,
         ],
 
-        KDropDownMenu(
-          title: 'Members',
-          list: ['one', 'two'],
-          controller: memberSearchCtlr,
-          hintText: 'Seaerch to add members',
-          onSelected: (val) {
-            if (!members.contains(val)) {
-              members.add(val!);
-            }
-            memberSearchCtlr.clear();
-            setState(() {});
+        Consumer<BoardController>(
+          builder: (context, value, child) {
+            final currentUser = value.currentUser;
+            final users = List<UserEntity>.from(value.allUsers)
+              ..removeWhere((e) => e.uid == currentUser?.uid);
+            final emails = users.map((e) => e.email).toList();
+            return KDropDownMenu(
+              title: 'Members',
+              list: emails.isEmpty ? ['none'] : emails,
+              controller: memberSearchCtlr,
+              hintText: 'Search to add members',
+              onSelected: (val) {
+                if (val != 'none') {
+                  if (!members.contains(val)) {
+                    final user = users.firstWhere((e) => e.email == val);
+                    members.add(user.uid);
+                  }
+                  memberSearchCtlr.clear();
+                  setState(() {});
+                }
+              },
+            );
           },
         ),
       ],
     );
   }
 
-  Container _buildMemberEmailCard(String member) {
+  Container _buildMemberEmailCard(String email, String id) {
     return Container(
       padding: EdgeInsets.fromLTRB(12, 4, 4, 4),
       decoration: BoxDecoration(
@@ -134,10 +178,10 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(member),
+          Text(email),
           hSpace8,
           GestureDetector(
-            onTap: () => setState(() => members.remove(member)),
+            onTap: () => setState(() => members.remove(id)),
             child: Container(
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(

@@ -5,6 +5,8 @@ class BoardModel {
   final String title;
   final String description;
   final List<String> members;
+  final List<String> tasks;
+  final String createdBy;
   final DateTime? createdAt;
 
   BoardModel({
@@ -12,6 +14,8 @@ class BoardModel {
     this.title = '',
     this.description = '',
     this.members = const [],
+    this.tasks = const [],
+    this.createdBy = '',
     this.createdAt,
   });
 
@@ -20,10 +24,9 @@ class BoardModel {
       id: json['id'] ?? '',
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      members: (json['members'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
+      members: List<String>.from(json['members'] ?? []),
+      tasks: List<String>.from(json['tasks'] ?? []),
+      createdBy: json['createdBy'],
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : null,
@@ -36,16 +39,18 @@ class BoardModel {
       'title': title,
       'description': description,
       'members': members,
+      'createdBy': createdBy,
       'createdAt': createdAt?.toIso8601String(),
     };
   }
 
-  BoardEntity toModel() {
+  BoardEntity toEntity() {
     return BoardEntity(
       id: id,
       title: title,
       description: description,
       members: members,
+      createdBy: createdBy,
       createdAt: createdAt,
     );
   }
@@ -55,6 +60,7 @@ class BoardModel {
     String? title,
     String? description,
     List<String>? members,
+    String? createdBy,
     DateTime? createdAt,
   }) {
     return BoardModel(
@@ -62,6 +68,7 @@ class BoardModel {
       title: title ?? this.title,
       description: description ?? this.description,
       members: members ?? this.members,
+      createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
     );
   }

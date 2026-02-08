@@ -7,5 +7,8 @@ class AppRoutes {
 
   static const String boards = '/boards';
   static const String createBoard = '/board/create';
+  static const String editBoard = '/board/edit';
   static const String boardDetail = '/board/detail';
+
+  static const String createTask = '/task/create';
 }

@@ -59,7 +59,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         uid: response.user?.uid,
         createdAt: response.user?.metadata.creationTime,
       );
-      await firebaseFirestore.collection('users').add(newUser.toJson());
+      await firebaseFirestore
+          .collection('users')
+          .doc(firebaseAuth.currentUser!.uid)
+          .set(newUser.toJson());
 
       return AuthResponse.success;
     } on FirebaseAuthException catch (e) {

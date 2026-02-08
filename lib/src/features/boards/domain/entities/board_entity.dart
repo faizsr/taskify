@@ -5,6 +5,7 @@ class BoardEntity {
   final String title;
   final String description;
   final List<String> members;
+  final String createdBy;
   final DateTime? createdAt;
 
   BoardEntity({
@@ -12,6 +13,7 @@ class BoardEntity {
     this.title = '',
     this.description = '',
     this.members = const [],
+    this.createdBy = '',
     this.createdAt,
   });
 
@@ -21,6 +23,7 @@ class BoardEntity {
       title: title,
       description: description,
       members: members,
+      createdBy: createdBy,
       createdAt: createdAt,
     );
   }

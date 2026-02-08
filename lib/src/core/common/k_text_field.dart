@@ -6,6 +6,7 @@ import 'package:taskify/src/config/styles/app_colors.dart';
 class KTextField extends StatefulWidget {
   const KTextField({
     super.key,
+    this.canRequestFocus = true,
     this.title = '',
     this.hintText = '',
     this.controller,
@@ -25,8 +26,10 @@ class KTextField extends StatefulWidget {
     this.maxLines = 1,
     this.maxLength,
     this.padding,
+    this.onTap,
   });
 
+  final bool canRequestFocus;
   final String title;
   final String hintText;
   final double height;
@@ -46,6 +49,7 @@ class KTextField extends StatefulWidget {
   final int? maxLines;
   final int? maxLength;
   final EdgeInsets? padding;
+  final void Function()? onTap;
 
   @override
   State<KTextField> createState() => _KTextFieldState();
@@ -72,6 +76,7 @@ class _KTextFieldState extends State<KTextField> {
           vSpace4,
         ],
         TextFormField(
+          canRequestFocus: widget.canRequestFocus,
           maxLines: widget.maxLines,
           initialValue: widget.initialValue,
           obscureText: obscure,
@@ -83,6 +88,7 @@ class _KTextFieldState extends State<KTextField> {
           readOnly: widget.readOnly,
           onChanged: widget.onChanged,
           maxLength: widget.maxLength,
+          onTap: widget.onTap,
           onTapOutside: (event) {
             FocusManager.instance.primaryFocus?.unfocus();
           },

@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
+import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
+import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
 class BoardCard extends StatelessWidget {
-  final String boardId;
-  final String boardTitle;
-  final String createdBy;
-  final String createdDate;
+  final BoardEntity board;
 
-  const BoardCard({
-    super.key,
-    this.boardId = '1',
-    this.boardTitle = 'Project One',
-    this.createdBy = 'John',
-    this.createdDate = '18 Jan 2026',
-  });
+  const BoardCard({super.key, required this.board});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.push(AppRoutes.boardDetail);
+        context.push(AppRoutes.boardDetail, extra: {'id': board.id});
       },
       child: Container(
         decoration: BoxDecoration(
@@ -32,8 +28,8 @@ class BoardCard extends StatelessWidget {
           border: Border.all(color: AppColors.lightGrey),
           boxShadow: [
             BoxShadow(
-              color: AppColors.lightBlue.withValues(alpha: 0.1),
               blurRadius: 10,
+              color: AppColors.grey.withValues(alpha: 0.2),
             ),
           ],
         ),
@@ -48,19 +44,36 @@ class BoardCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        boardTitle,
+                        board.title,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      Text(
-                        'Created by: $createdBy',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.lightBlue,
-                        ),
+                      Consumer<BoardController>(
+                        builder: (context, value, child) {
+                          String name = '';
+                          if (value.currentUser?.uid == board.createdBy) {
+                            name = value.currentUser!.name;
+                          } else {
+                            if (value.allUsers.isNotEmpty) {}
+                            name = value.allUsers
+                                .firstWhere(
+                                  (e) => e.uid == board.createdBy,
+                                  orElse: () => UserEntity(),
+                                )
+                                .name;
+                          }
+                          return Text(
+                            'Created by: $name',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: AppColors.black.withValues(alpha: 0.8),
+                                ),
+                          );
+                        },
                       ),
                     ],
                   ),
                   Text(
-                    createdDate,
+                    DateFormat('dd MMM yyyy').format(board.createdAt!),
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
@@ -97,62 +110,63 @@ class BoardCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               color: AppColors.lightBlue.withValues(alpha: 0.1),
             ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Assinged to You',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Task Title',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      'Assigned to You',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.lightBlue,
                       ),
-                      vSpace2,
-                      Text(
-                        'Auth Feature',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      vSpace8,
-                      Container(
-                        padding: EdgeInsets.fromLTRB(4, 2, 4, 2),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.grey.withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              SolarIconsOutline.calendarMinimalistic,
-                              size: 16,
-                            ),
-                            hSpace4,
-                            Text(
-                              '28 Jan 2026',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.black),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-
-                Container(
-                  padding: EdgeInsets.fromLTRB(12, 4, 12, 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: AppColors.grey.withValues(alpha: 0.2),
-                  ),
-                  child: Text(
-                    'To do',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+                vSpace8,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.lightGrey),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            SolarIconsOutline.calendar,
+                            color: AppColors.blue,
+                            size: 20,
+                          ),
+                          hSpace12,
+                          Text(
+                            '18 Jan 2026',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: AppColors.lightGrey,
+                      ),
+                      child: Text(
+                        'To do',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

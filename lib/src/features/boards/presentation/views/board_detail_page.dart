@@ -1,114 +1,140 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
+import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
+import 'package:taskify/src/core/common/confirm_dialog.dart';
+import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
+import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 import 'package:taskify/src/features/boards/presentation/widgets/task_card.dart';
 
-class BoardDetailPage extends StatelessWidget {
-  final String boardTitle;
-  final String boardDescription;
-  final List<String> members;
-  final DateTime? createdAt;
+class BoardDetailPage extends StatefulWidget {
+  final String id;
+  const BoardDetailPage({super.key, required this.id});
 
-  const BoardDetailPage({
-    super.key,
-    this.boardTitle = 'Design System',
-    this.boardDescription =
-        'Collaborate on our latest design system updates and improvements',
-    this.members = const ['user1', 'user2', 'user3'],
-    this.createdAt,
-  });
+  @override
+  State<BoardDetailPage> createState() => _BoardDetailPageState();
+}
+
+class _BoardDetailPageState extends State<BoardDetailPage> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final boardCtlr = context.read<BoardController>();
+      boardCtlr.getBoard(widget.id);
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildDescription(context),
-          vSpace16,
-          _buildMembersSection(context),
-          vSpace28,
-          Row(
-            children: [
-              _buildStatusCard(
-                context: context,
-                icon: SolarIconsOutline.calendar,
-                title: 'Created At',
-                value: '18 Jan 2026',
-              ),
-              hSpace12,
-              _buildStatusCard(
-                context: context,
-                icon: SolarIconsOutline.documentAdd,
-                title: 'Created By',
-                value: 'You',
-              ),
-            ],
-          ),
-          vSpace24,
-          _buildTaskList(context),
-        ],
-      ),
+    return Consumer<BoardController>(
+      builder: (context, value, child) {
+        if (value.board != null) {
+          return Scaffold(
+            appBar: _buildAppBar(value.currentUser?.uid, value.board!),
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildDescription(value.board!),
+                vSpace20,
+                _buildMembersSection(value.board!, value.allUsers),
+                vSpace28,
+                Row(
+                  children: [
+                    _buildStatusCard(
+                      context: context,
+                      icon: SolarIconsOutline.calendar,
+                      title: 'Created At',
+                      value: DateFormat(
+                        'dd MMM yyyy',
+                      ).format(value.board!.createdAt!),
+                    ),
+                    hSpace12,
+                    _buildStatusCard(
+                      context: context,
+                      icon: SolarIconsOutline.documentAdd,
+                      title: 'Created By',
+                      value: value.allUsers
+                          .firstWhere((e) => e.uid == value.board?.createdBy)
+                          .email,
+                    ),
+                  ],
+                ),
+                vSpace24,
+                _buildTaskList(context),
+              ],
+            ),
+          );
+        }
+
+        return Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
+  AppBar _buildAppBar(String? currentUserId, BoardEntity board) {
     return AppBar(
       titleSpacing: 0,
-      centerTitle: true,
-      title: Text(boardTitle),
+      title: Text(board.title),
+      centerTitle: currentUserId != board.createdBy,
       leading: IconButton(
         icon: Icon(SolarIconsOutline.arrowLeft),
         onPressed: () => context.pop(),
       ),
-      actions: [
-        IconButton(
-          icon: Icon(SolarIconsOutline.trashBinMinimalistic),
-          onPressed: () {},
-        ),
-      ],
+      actions: currentUserId == board.createdBy
+          ? [
+              IconButton(
+                icon: Icon(SolarIconsOutline.pen2),
+                onPressed: () {
+                  context.push(AppRoutes.editBoard, extra: {'board': board});
+                },
+              ),
+              IconButton(
+                icon: Icon(SolarIconsOutline.trashBinMinimalistic),
+                onPressed: _onDeletePressed,
+              ),
+            ]
+          : [],
     );
   }
 
-  Widget _buildDescription(BuildContext context) {
+  Widget _buildDescription(BoardEntity board) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Description', style: Theme.of(context).textTheme.titleMedium),
-        TextFormField(
+        vSpace8,
+        Text(
+          board.description,
           maxLines: null,
-          initialValue: boardDescription,
           style: Theme.of(context).textTheme.bodyMedium,
-          decoration: InputDecoration(border: InputBorder.none),
-          onTapUpOutside: (event) {
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
         ),
       ],
     );
   }
 
-  Widget _buildMembersSection(BuildContext context) {
+  Widget _buildMembersSection(BoardEntity board, List<UserEntity> users) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Members (${members.length})',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        vSpace12,
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children:
-              List.generate(
-                members.length,
-                (index) => _buildMemberEmailCard(members[index]),
-              ).followedBy([
-                Container(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Members (${board.members.length})',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (board.members.isEmpty) ...[
+              GestureDetector(
+                onTap: () {
+                  context.push(AppRoutes.editBoard, extra: {'board': board});
+                },
+                child: Container(
                   padding: EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -116,8 +142,24 @@ class BoardDetailPage extends StatelessWidget {
                   ),
                   child: Icon(Icons.add, size: 20, color: AppColors.white),
                 ),
-              ]).toList(),
+              ),
+            ],
+          ],
         ),
+        if (board.members.isNotEmpty) ...[
+          vSpace12,
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: List.generate(board.members.length, (index) {
+              final user = users.firstWhere(
+                (e) => e.uid == board.members[index],
+                orElse: () => UserEntity(),
+              );
+              return _buildMemberEmailCard(user.email);
+            }),
+          ),
+        ],
       ],
     );
   }
@@ -171,6 +213,8 @@ class BoardDetailPage extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
@@ -198,13 +242,18 @@ class BoardDetailPage extends StatelessWidget {
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            Container(
-              padding: EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.blue,
+            GestureDetector(
+              onTap: () {
+                context.push(AppRoutes.createTask);
+              },
+              child: Container(
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.blue,
+                ),
+                child: Icon(Icons.add, size: 20, color: AppColors.white),
               ),
-              child: Icon(Icons.add, size: 20, color: AppColors.white),
             ),
           ],
         ),
@@ -219,6 +268,27 @@ class BoardDetailPage extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+
+  void _onDeletePressed() {
+    String subTitle =
+        'You’re about to delete this board. This action is irreversible.';
+    showDialog(
+      context: context,
+      barrierColor: AppColors.black.withValues(alpha: 0.6),
+      builder: (context) {
+        return ConfirmDialog(
+          icon: '?',
+          disableCancel: true,
+          title: 'Confirm Delete',
+          subTitle: subTitle,
+          onPressed: () {
+            context.pop();
+            context.pop();
+          },
+        );
+      },
     );
   }
 }

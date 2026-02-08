@@ -33,7 +33,7 @@ class UserModel {
     };
   }
 
-  UserEntity toModel() {
+  UserEntity toEntity() {
     return UserEntity(
       uid: uid,
       name: name,

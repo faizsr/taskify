@@ -44,6 +44,8 @@ class AuthController extends ChangeNotifier {
 
     if (response == AuthResponse.success) {
       showCustomSnackbar(type: SnackType.success, content: 'Login successful');
+      isBtnLoading = false;
+      notifyListeners();
       return true;
     } else {
       showCustomSnackbar(
@@ -68,6 +70,8 @@ class AuthController extends ChangeNotifier {
         type: SnackType.success,
         content: 'Registration completed successfully',
       );
+      isBtnLoading = false;
+      notifyListeners();
       return true;
     } else {
       showCustomSnackbar(

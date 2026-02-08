@@ -16,7 +16,6 @@ class _TaskCardState extends State<TaskCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         color: AppColors.lightBlue.withValues(alpha: 0.1),
@@ -149,10 +148,10 @@ class _TaskCardState extends State<TaskCard> {
             filled: true,
             isCollapsed: true,
             fillColor: selectedStatus == 'to-do'
-                ? AppColors.grey.withValues(alpha: 0.2)
+                ? AppColors.lightGrey
                 : selectedStatus == 'done'
-                ? Colors.amberAccent
-                : AppColors.lightBlue,
+                ? Colors.yellowAccent
+                : Colors.lightBlueAccent,
             contentPadding: const EdgeInsets.all(8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
