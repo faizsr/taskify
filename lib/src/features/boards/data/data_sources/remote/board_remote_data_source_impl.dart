@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,22 +44,66 @@ class BoardRemoteDataSourceImpl implements BoardRemoteDataSource {
 
   @override
   Stream<List<BoardModel>> getAllBoards() {
+    final controller = StreamController<List<BoardModel>>();
     final currentUid = firebaseAuth.currentUser?.uid ?? '';
-    final collection = firestore
+
+    List<BoardModel> boards = [];
+    List<TaskModel> tasks = [];
+
+    late StreamSubscription boardsSub;
+    late StreamSubscription tasksSub;
+
+    void emit() {
+      // Group tasks by boardId
+      final taskMap = <String, List<TaskModel>>{};
+      for (final task in tasks) {
+        taskMap.putIfAbsent(task.boardId, () => []).add(task);
+      }
+
+      final populatedBoards = boards.map((board) {
+        return board.copyWith(taskModels: taskMap[board.id] ?? []);
+      }).toList();
+
+      controller.add(populatedBoards);
+    }
+
+    /// Boards listener
+    boardsSub = firestore
         .collection('boards')
         .orderBy('createdAt', descending: true)
-        .snapshots();
+        .snapshots()
+        .listen((snapshot) {
+          boards = snapshot.docs
+              .map((doc) => BoardModel.fromJson(doc.data()))
+              .where(
+                (board) =>
+                    board.members.contains(currentUid) ||
+                    board.createdBy == currentUid,
+              )
+              .toList();
 
-    return collection.map((snapshot) {
-      return snapshot.docs
-          .map((doc) => BoardModel.fromJson(doc.data()))
-          .where(
-            (element) =>
-                element.members.contains(currentUid) ||
-                element.createdBy == currentUid,
-          )
-          .toList();
-    });
+          emit();
+        });
+
+    /// Tasks listener
+    tasksSub = firestore
+        .collection('tasks')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+          tasks = snapshot.docs
+              .map((doc) => TaskModel.fromJson(doc.data()))
+              .toList();
+
+          emit();
+        });
+
+    controller.onCancel = () {
+      boardsSub.cancel();
+      tasksSub.cancel();
+    };
+
+    return controller.stream;
   }
 
   @override

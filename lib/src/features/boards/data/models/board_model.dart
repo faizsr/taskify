@@ -1,3 +1,4 @@
+import 'package:taskify/src/features/boards/data/models/task_model.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
 
 class BoardModel {
@@ -6,6 +7,7 @@ class BoardModel {
   final String description;
   final List<String> members;
   final List<String> tasks;
+  final List<TaskModel> taskModels;
   final String createdBy;
   final DateTime? createdAt;
 
@@ -15,6 +17,7 @@ class BoardModel {
     this.description = '',
     this.members = const [],
     this.tasks = const [],
+    this.taskModels = const [],
     this.createdBy = '',
     this.createdAt,
   });
@@ -51,6 +54,7 @@ class BoardModel {
       description: description,
       members: members,
       tasks: tasks,
+      taskEntities: taskModels.map((e) => e.toEntity()).toList(),
       createdBy: createdBy,
       createdAt: createdAt,
     );
@@ -62,6 +66,7 @@ class BoardModel {
     String? description,
     List<String>? members,
     List<String>? tasks,
+    List<TaskModel>? taskModels,
     String? createdBy,
     DateTime? createdAt,
   }) {
@@ -71,6 +76,7 @@ class BoardModel {
       description: description ?? this.description,
       members: members ?? this.members,
       tasks: tasks ?? this.tasks,
+      taskModels: taskModels ?? this.taskModels,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
     );
