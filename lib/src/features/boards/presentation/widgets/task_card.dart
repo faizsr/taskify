@@ -9,7 +9,9 @@ import 'package:taskify/src/config/di/injections.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/confirm_dialog.dart';
+import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
@@ -24,16 +26,22 @@ class TaskCard extends StatefulWidget {
 }
 
 class _TaskCardState extends State<TaskCard> {
+  late AuthController authCtlr;
+  late BoardController boardCtlr;
+
   String selectedStatus = 'to-do';
 
   void _updateTaskStatus(String? value) {
-    final boardCtlr = context.read<BoardController>();
     final task = TaskEntity(id: widget.task.id, status: value!);
     boardCtlr.updateTask(task);
     setState(() => selectedStatus = value);
   }
 
   void _deleteTask() {
+    if (!authCtlr.isNetworkConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return;
+    }
     String subTitle =
         'You’re about to delete this task. This action is irreversible.';
     showDialog(
@@ -47,7 +55,6 @@ class _TaskCardState extends State<TaskCard> {
           subTitle: subTitle,
           onPressed: () async {
             context.pop();
-            final boardCtlr = context.read<BoardController>();
             final status = await boardCtlr.deleteTask(widget.task.id);
             if (status && context.mounted) context.pop();
           },
@@ -57,10 +64,21 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   void _editTask() {
+    if (!authCtlr.isNetworkConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return;
+    }
     context.push(
       AppRoutes.editTask,
       extra: {'boardId': widget.task.boardId, 'task': widget.task},
     );
+  }
+
+  @override
+  void initState() {
+    authCtlr = context.read<AuthController>();
+    boardCtlr = context.read<BoardController>();
+    super.initState();
   }
 
   @override

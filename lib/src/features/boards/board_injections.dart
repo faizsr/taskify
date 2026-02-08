@@ -1,6 +1,12 @@
+import 'package:hive_ce/hive.dart';
 import 'package:taskify/src/config/di/injections.dart';
+import 'package:taskify/src/features/auth/data/models/user_model.dart';
+import 'package:taskify/src/features/boards/data/data_sources/local/board_local_data_source.dart';
+import 'package:taskify/src/features/boards/data/data_sources/local/board_local_data_source_impl.dart';
 import 'package:taskify/src/features/boards/data/data_sources/remote/board_remote_data_source.dart';
 import 'package:taskify/src/features/boards/data/data_sources/remote/board_remote_data_source_impl.dart';
+import 'package:taskify/src/features/boards/data/models/board_model.dart';
+import 'package:taskify/src/features/boards/data/models/task_model.dart';
 import 'package:taskify/src/features/boards/data/repositories/board_repository_impl.dart';
 import 'package:taskify/src/features/boards/domain/repositories/board_repository.dart';
 import 'package:taskify/src/features/boards/domain/usecases/create_board_usecase.dart';
@@ -16,7 +22,26 @@ import 'package:taskify/src/features/boards/domain/usecases/update_board_usecase
 import 'package:taskify/src/features/boards/domain/usecases/update_task_usecase.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
+Future<void> initHiveBoxes() async {
+  Hive
+    ..registerAdapter(TaskModelAdapter()) // FIRST
+    ..registerAdapter(BoardModelAdapter())
+    ..registerAdapter(UserModelAdapter());
+  await Hive.openBox<BoardModel>('boards_box');
+  await Hive.openBox<UserModel>('users_box');
+  await Hive.openBox<UserModel>('current_user_box');
+}
+
 void initBoardInjections() {
+  // Board Local Data Source
+  sl.registerLazySingleton<BoardLocalDataSource>(
+    () => BoardLocalDataSourceImpl(
+      boardsBox: Hive.box<BoardModel>('boards_box'),
+      usersBox: Hive.box<UserModel>('users_box'),
+      currentUserBox: Hive.box<UserModel>('current_user_box'),
+    ),
+  );
+
   // Board Remote Data Source
   sl.registerLazySingleton<BoardRemoteDataSource>(
     () => BoardRemoteDataSourceImpl(firestore: sl(), firebaseAuth: sl()),
@@ -24,7 +49,10 @@ void initBoardInjections() {
 
   // Board Repository
   sl.registerLazySingleton<BoardRepository>(
-    () => BoardRepositoryImpl(boardRemoteDataSource: sl()),
+    () => BoardRepositoryImpl(
+      boardRemoteDataSource: sl(),
+      boardLocalDataSource: sl(),
+    ),
   );
 
   // Board Usecases

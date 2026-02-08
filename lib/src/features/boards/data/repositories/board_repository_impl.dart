@@ -1,4 +1,5 @@
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/boards/data/data_sources/local/board_local_data_source.dart';
 import 'package:taskify/src/features/boards/data/data_sources/remote/board_remote_data_source.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
 import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
@@ -6,8 +7,12 @@ import 'package:taskify/src/features/boards/domain/repositories/board_repository
 
 class BoardRepositoryImpl implements BoardRepository {
   final BoardRemoteDataSource boardRemoteDataSource;
+  final BoardLocalDataSource boardLocalDataSource;
 
-  BoardRepositoryImpl({required this.boardRemoteDataSource});
+  BoardRepositoryImpl({
+    required this.boardRemoteDataSource,
+    required this.boardLocalDataSource,
+  });
 
   @override
   Future<void> createBoard(BoardEntity board) async {
@@ -25,21 +30,50 @@ class BoardRepositoryImpl implements BoardRepository {
   }
 
   @override
+  Stream<List<UserEntity>> getAllUsers() async* {
+    // Cached first
+    final cachedUsers = boardLocalDataSource.getCachedUsers();
+    if (cachedUsers.isNotEmpty) {
+      yield cachedUsers.map((e) => e.toEntity()).toList();
+    }
+
+    // Remote stream
+    await for (final users in boardRemoteDataSource.getAllUsers()) {
+      await boardLocalDataSource.cacheUsers(users);
+      yield users.map((e) => e.toEntity()).toList();
+    }
+  }
+
+  @override
   Future<UserEntity?> getCurrentUser() async {
+    // 1️⃣ Local first
+    final cachedUser = boardLocalDataSource.getCachedCurrentUser();
+    if (cachedUser != null) {
+      return cachedUser.toEntity();
+    }
+
+    // 2️⃣ Remote fallback
     final user = await boardRemoteDataSource.getCurrentUser();
-    return user?.toEntity();
+    if (user != null) {
+      await boardLocalDataSource.cacheCurrentUser(user);
+      return user.toEntity();
+    }
+    return null;
   }
 
   @override
-  Stream<List<UserEntity>> getAllUsers() {
-    final users = boardRemoteDataSource.getAllUsers();
-    return users.map((e) => e.map((e) => e.toEntity()).toList());
-  }
+  Stream<List<BoardEntity>> getAllBoards() async* {
+    // 1️⃣ Emit cached boards first
+    final cachedBoards = boardLocalDataSource.getCachedBoards();
+    if (cachedBoards.isNotEmpty) {
+      yield cachedBoards.map((e) => e.toEntity()).toList();
+    }
 
-  @override
-  Stream<List<BoardEntity>> getAllBoards() {
-    final boards = boardRemoteDataSource.getAllBoards();
-    return boards.map((e) => e.map((e) => e.toEntity()).toList());
+    // 2️⃣ Listen to remote and cache updates
+    await for (final boards in boardRemoteDataSource.getAllBoards()) {
+      await boardLocalDataSource.cacheBoards(boards);
+      yield boards.map((e) => e.toEntity()).toList();
+    }
   }
 
   @override

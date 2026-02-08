@@ -7,7 +7,9 @@ import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/di/injections.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
+import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 import 'package:taskify/src/features/boards/presentation/widgets/board_card.dart';
 
@@ -19,11 +21,13 @@ class BoardListPage extends StatefulWidget {
 }
 
 class _BoardListPageState extends State<BoardListPage> {
+  late AuthController authCtlr;
   late BoardController boardCtlr;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      authCtlr = context.read<AuthController>();
       boardCtlr = context.read<BoardController>();
       boardCtlr.getAllUsers();
       boardCtlr.getCurrentUser();
@@ -73,7 +77,11 @@ class _BoardListPageState extends State<BoardListPage> {
         children: [
           GestureDetector(
             onTap: () {
-              context.push(AppRoutes.createBoard);
+              if (authCtlr.isNetworkConnected) {
+                context.push(AppRoutes.createBoard);
+              } else {
+                showCustomSnackbar(type: SnackType.noInternet);
+              }
             },
             child: Container(
               padding: EdgeInsets.all(6),
@@ -106,7 +114,11 @@ class _BoardListPageState extends State<BoardListPage> {
         ),
         GestureDetector(
           onTap: () {
-            context.push(AppRoutes.createBoard);
+            if (authCtlr.isNetworkConnected) {
+              context.push(AppRoutes.createBoard);
+            } else {
+              showCustomSnackbar(type: SnackType.noInternet);
+            }
           },
           child: Container(
             padding: EdgeInsets.all(6),
@@ -128,9 +140,13 @@ class _BoardListPageState extends State<BoardListPage> {
         IconButton(
           icon: Icon(SolarIconsOutline.logout),
           onPressed: () {
-            context.read<BoardController>().clearOnLogout();
-            sl<FirebaseAuth>().signOut();
-            context.go(AppRoutes.login);
+            if (authCtlr.isNetworkConnected) {
+              boardCtlr.clearOnLogout();
+              sl<FirebaseAuth>().signOut();
+              context.go(AppRoutes.login);
+            } else {
+              showCustomSnackbar(type: SnackType.noInternet);
+            }
           },
         ),
         hSpace4,

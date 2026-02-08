@@ -7,8 +7,10 @@ import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/confirm_dialog.dart';
+import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
 import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
@@ -23,12 +25,15 @@ class BoardDetailPage extends StatefulWidget {
 }
 
 class _BoardDetailPageState extends State<BoardDetailPage> {
+  late AuthController authCtlr;
+  late BoardController boardCtlr;
   bool canEdit = true;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final boardCtlr = context.read<BoardController>();
+      authCtlr = context.read<AuthController>();
+      boardCtlr = context.read<BoardController>();
       boardCtlr.getBoard(widget.id);
       boardCtlr.getAllTasks(widget.id);
     });
@@ -36,6 +41,12 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
   }
 
   void _onDeletePressed() {
+    final isConnected = authCtlr.isNetworkConnected;
+    if (!isConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return;
+    }
+
     String subTitle =
         'You’re about to delete this board. This action is irreversible.';
     showDialog(
@@ -56,6 +67,24 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
         );
       },
     );
+  }
+
+  void _onEditPressed(BoardEntity board) {
+    final isConnected = authCtlr.isNetworkConnected;
+    if (!isConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return;
+    }
+    context.push(AppRoutes.editBoard, extra: {'board': board});
+  }
+
+  void _createTask() {
+    final isConnected = authCtlr.isNetworkConnected;
+    if (!isConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return;
+    }
+    context.push(AppRoutes.createTask, extra: {'boardId': widget.id});
   }
 
   @override
@@ -259,12 +288,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             GestureDetector(
-              onTap: () {
-                context.push(
-                  AppRoutes.createTask,
-                  extra: {'boardId': widget.id},
-                );
-              },
+              onTap: _createTask,
               child: Container(
                 padding: EdgeInsets.all(6),
                 decoration: BoxDecoration(
@@ -303,9 +327,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
           ? [
               IconButton(
                 icon: Icon(SolarIconsOutline.pen2),
-                onPressed: () {
-                  context.push(AppRoutes.editBoard, extra: {'board': board});
-                },
+                onPressed: () => _onEditPressed(board),
               ),
               IconButton(
                 icon: Icon(SolarIconsOutline.trashBinMinimalistic),

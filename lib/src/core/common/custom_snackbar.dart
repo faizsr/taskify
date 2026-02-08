@@ -21,7 +21,8 @@ void showCustomSnackbar({
   } else if (type == SnackType.info) {
     leading = SolarIconsOutline.infoCircle;
   } else if (type == SnackType.noInternet) {
-    leading = SolarIconsOutline.wifiRouter;
+    leading = SolarIconsOutline.wifiRouterMinimalistic;
+    content = 'Check your internet connection';
   }
 
   ScaffoldMessenger.of(context).showSnackBar(

@@ -1,15 +1,38 @@
+import 'package:hive_ce/hive.dart';
 import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 
+part 'task_model.g.dart';
+
+@HiveType(typeId: 3)
 class TaskModel {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String boardId;
+
+  @HiveField(2)
   final String title;
+
+  @HiveField(3)
   final String description;
+
+  @HiveField(4)
   final String status;
+
+  @HiveField(5)
   final String assignedTo;
+
+  @HiveField(6)
   final String createdBy;
+
+  @HiveField(7)
   final DateTime? dueDate;
+
+  @HiveField(8)
   final DateTime? startDate;
+
+  @HiveField(9)
   final DateTime? createdAt;
 
   TaskModel({
@@ -34,9 +57,9 @@ class TaskModel {
       status: json['status'],
       assignedTo: json['assignedTo'],
       createdBy: json['createdBy'],
-      dueDate: DateTime.tryParse(json['dueDate']),
-      startDate: DateTime.tryParse(json['startDate']),
-      createdAt: DateTime.tryParse(json['createdAt']),
+      dueDate: DateTime.tryParse(json['dueDate'] ?? ''),
+      startDate: DateTime.tryParse(json['startDate'] ?? ''),
+      createdAt: DateTime.tryParse(json['createdAt'] ?? ''),
     );
   }
 

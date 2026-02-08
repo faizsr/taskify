@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
+import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/core/common/k_drop_down_menu.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/core/common/k_text_field.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
@@ -34,8 +36,13 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
   DateTime? startDate;
   DateTime? endDate;
 
-  Future<void> _onCreatePressed() async {
+  Future<void> _onBtnPressed() async {
     final boardCtlr = context.read<BoardController>();
+    final authCtlr = context.read<AuthController>();
+    if (!authCtlr.isNetworkConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return;
+    }
     bool success = false;
     if (formKey.currentState!.validate()) {
       if (widget.task == null) {
@@ -144,7 +151,7 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
                 return KFilledButton(
                   text: widget.task != null ? 'Update' : 'Create',
                   isLoading: isLoading,
-                  onPressed: _onCreatePressed,
+                  onPressed: _onBtnPressed,
                 );
               },
             ),
