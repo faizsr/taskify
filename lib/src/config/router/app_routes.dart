@@ -11,4 +11,5 @@ class AppRoutes {
   static const String boardDetail = '/board/detail';
 
   static const String createTask = '/task/create';
+  static const String editTask = '/task/edit';
 }

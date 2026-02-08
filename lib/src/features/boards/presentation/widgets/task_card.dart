@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/di/injections.dart';
+import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/confirm_dialog.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
@@ -32,7 +33,7 @@ class _TaskCardState extends State<TaskCard> {
     setState(() => selectedStatus = value);
   }
 
-  void _onDeleteTaskPressed() {
+  void _deleteTask() {
     String subTitle =
         'You’re about to delete this task. This action is irreversible.';
     showDialog(
@@ -52,6 +53,13 @@ class _TaskCardState extends State<TaskCard> {
           },
         );
       },
+    );
+  }
+
+  void _editTask() {
+    context.push(
+      AppRoutes.editTask,
+      extra: {'boardId': widget.task.boardId, 'task': widget.task},
     );
   }
 
@@ -95,10 +103,42 @@ class _TaskCardState extends State<TaskCard> {
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
                 ),
                 if (widget.canEdit) ...[
-                  IconButton(
-                    onPressed: _onDeleteTaskPressed,
-                    icon: Icon(SolarIconsOutline.trashBinMinimalistic),
+                  // IconButton(
+                  //   onPressed: _deleteTask,
+                  //   icon: Icon(SolarIconsOutline.trashBinMinimalistic),
+                  //   iconSize: 20,
+                  // ),
+                  PopupMenuButton(
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          value: 'edit',
+                          onTap: _editTask,
+                          child: Text('Edit'),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          onTap: _deleteTask,
+                          child: Text('Delete'),
+                        ),
+                      ];
+                    },
                     iconSize: 20,
+                    elevation: 0,
+                    color: AppColors.white,
+                    position: PopupMenuPosition.under,
+                    menuPadding: const EdgeInsets.all(2),
+                    popUpAnimationStyle: AnimationStyle(
+                      curve: Curves.easeIn,
+                      reverseCurve: Curves.easeOut,
+                      duration: const Duration(milliseconds: 400),
+                      reverseDuration: const Duration(milliseconds: 400),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    offset: Offset(-12, 0),
+                    onSelected: (value) {},
                   ),
                 ],
               ],

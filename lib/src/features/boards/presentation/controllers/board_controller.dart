@@ -220,11 +220,22 @@ class BoardController extends ChangeNotifier {
     }
   }
 
-  Future<void> updateTask(TaskEntity task) async {
+  Future<bool> updateTask(TaskEntity task) async {
+    if (task.status.isEmpty) {
+      isBtnLoading = true;
+      notifyListeners();
+    }
+
     try {
       await updateTaskUsecase.call(task);
+      isBtnLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       log('Failed to update board. Please try again.: $e');
+      isBtnLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,7 +31,6 @@ class BoardRemoteDataSourceImpl implements BoardRemoteDataSource {
     final json = board.toJson()
       ..remove('createdBy')
       ..remove('createdAt');
-    log('Update Json: $json');
     await collection.doc(board.id).update(json);
   }
 
@@ -131,7 +129,16 @@ class BoardRemoteDataSourceImpl implements BoardRemoteDataSource {
   @override
   Future<void> updateTask(TaskModel task) async {
     final collection = firestore.collection('tasks');
-    final json = {'status': task.status};
+    Map<String, dynamic> json = {};
+    if (task.status.isNotEmpty) {
+      json = {'status': task.status};
+    } else {
+      json = {
+        'title': task.title,
+        'description': task.description,
+        'dueDate': task.dueDate?.toIso8601String(),
+      };
+    }
     await collection.doc(task.id).update(json);
   }
 

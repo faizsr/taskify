@@ -13,9 +13,11 @@ import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
 class CreateEditTaskPage extends StatefulWidget {
-  const CreateEditTaskPage({super.key, required this.boardId});
-
   final String boardId;
+  final TaskEntity? task;
+
+  const CreateEditTaskPage({super.key, this.task, required this.boardId});
+
   @override
   State<CreateEditTaskPage> createState() => _CreateEditTaskPageState();
 }
@@ -34,62 +36,44 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
 
   Future<void> _onCreatePressed() async {
     final boardCtlr = context.read<BoardController>();
+    bool success = false;
     if (formKey.currentState!.validate()) {
-      final task = TaskEntity(
-        boardId: widget.boardId,
-        title: titleCtlr.text,
-        description: descriptionCtlr.text,
-        status: 'to-do',
-        assignedTo: member,
-        startDate: startDate,
-        dueDate: endDate,
-        createdAt: DateTime.now(),
-      );
-      await boardCtlr.createTask(task);
+      if (widget.task == null) {
+        final task = TaskEntity(
+          boardId: widget.boardId,
+          title: titleCtlr.text,
+          description: descriptionCtlr.text,
+          status: 'to-do',
+          assignedTo: member,
+          startDate: startDate,
+          dueDate: endDate,
+          createdAt: DateTime.now(),
+        );
+        success = await boardCtlr.createTask(task);
+      } else {
+        final task = TaskEntity(
+          id: widget.task!.id,
+          title: titleCtlr.text,
+          description: descriptionCtlr.text,
+          dueDate: endDate,
+        );
+        success = await boardCtlr.updateTask(task);
+      }
     }
-    if (mounted) context.pop();
+    if (success && mounted) context.pop();
   }
 
-  Future<void> _pickDate({
-    required BuildContext context,
-    required bool isStartDate,
-  }) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: isStartDate
-          ? startDate ?? DateTime.now()
-          : endDate ?? startDate ?? DateTime.now(),
-      firstDate: isStartDate ? DateTime(1950) : startDate ?? DateTime(1950),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(
-            context,
-          ).copyWith(colorScheme: ColorScheme.light(surface: AppColors.white)),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked == null) return;
-
-    final formatted = DateFormat('dd MMM yyy').format(picked);
-
-    setState(() {
-      if (isStartDate) {
-        startDate = picked;
-        startDateCtlr.text = formatted;
-
-        // Reset end date if it becomes invalid
-        if (endDate != null && endDate!.isBefore(picked)) {
-          endDate = null;
-          endDateCtlr.clear();
-        }
-      } else {
-        endDate = picked;
-        endDateCtlr.text = formatted;
-      }
-    });
+  @override
+  void initState() {
+    if (widget.task != null) {
+      titleCtlr.text = widget.task!.title;
+      descriptionCtlr.text = widget.task!.description;
+      endDate = widget.task!.dueDate;
+      endDateCtlr.text = DateFormat(
+        'dd MMM yyyy',
+      ).format(widget.task!.dueDate!);
+    }
+    super.initState();
   }
 
   @override
@@ -98,7 +82,7 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
       appBar: AppBar(
         titleSpacing: 0,
         centerTitle: true,
-        title: Text('Create new task'),
+        title: Text(widget.task != null ? 'Edit task' : 'Create new task'),
         leading: IconButton(
           onPressed: () => context.pop(),
           icon: Icon(SolarIconsOutline.arrowLeft),
@@ -123,26 +107,31 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
               hintText: 'Describe more about the project',
             ),
             vSpace20,
-            _buildAssignMemberField(context),
-            vSpace20,
+
+            if (widget.task == null) ...[
+              _buildAssignMemberField(context),
+              vSpace20,
+            ],
+
             Row(
               children: [
-                Expanded(
-                  child: KTextField(
-                    title: 'Start date',
-                    canRequestFocus: true,
-                    controller: startDateCtlr,
-                    onTap: () => _pickDate(context: context, isStartDate: true),
+                if (widget.task == null) ...[
+                  Expanded(
+                    child: KTextField(
+                      title: 'Start date',
+                      canRequestFocus: true,
+                      controller: startDateCtlr,
+                      onTap: () => _pickDate(isStartDate: true),
+                    ),
                   ),
-                ),
-                hSpace12,
+                  hSpace12,
+                ],
                 Expanded(
                   child: KTextField(
-                    title: 'End date',
+                    title: 'Due date',
                     canRequestFocus: true,
                     controller: endDateCtlr,
-                    onTap: () =>
-                        _pickDate(context: context, isStartDate: false),
+                    onTap: () => _pickDate(isStartDate: false),
                   ),
                 ),
               ],
@@ -153,7 +142,7 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
               selector: (context, controller) => controller.isBtnLoading,
               builder: (context, isLoading, child) {
                 return KFilledButton(
-                  text: 'Create',
+                  text: widget.task != null ? 'Update' : 'Create',
                   isLoading: isLoading,
                   onPressed: _onCreatePressed,
                 );
@@ -236,5 +225,44 @@ class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickDate({required bool isStartDate}) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStartDate
+          ? startDate ?? DateTime.now()
+          : endDate ?? startDate ?? DateTime.now(),
+      firstDate: isStartDate ? DateTime(1950) : startDate ?? DateTime(1950),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(
+            context,
+          ).copyWith(colorScheme: ColorScheme.light(surface: AppColors.white)),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked == null) return;
+
+    final formatted = DateFormat('dd MMM yyy').format(picked);
+
+    setState(() {
+      if (isStartDate) {
+        startDate = picked;
+        startDateCtlr.text = formatted;
+
+        // Reset end date if it becomes invalid
+        if (endDate != null && endDate!.isBefore(picked)) {
+          endDate = null;
+          endDateCtlr.clear();
+        }
+      } else {
+        endDate = picked;
+        endDateCtlr.text = formatted;
+      }
+    });
   }
 }

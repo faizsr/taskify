@@ -7,6 +7,7 @@ import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/k_drop_down_menu.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/core/common/k_text_field.dart';
+import 'package:taskify/src/core/utils/input_validator.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
@@ -30,6 +31,7 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
 
   Future<void> _onBtnPressed() async {
     if (formKey.currentState!.validate()) {
+      bool success = false;
       final boardCtlr = context.read<BoardController>();
 
       if (widget.board != null) {
@@ -39,7 +41,7 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
           description: descriptionCtlr.text,
           members: members,
         );
-        await boardCtlr.updateBoard(updatedBoard);
+        success = await boardCtlr.updateBoard(updatedBoard);
       } else {
         final newBoard = BoardEntity(
           title: titleCtlr.text,
@@ -47,9 +49,9 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
           members: members,
           createdAt: DateTime.now(),
         );
-        await boardCtlr.createBoard(newBoard);
+        success = await boardCtlr.createBoard(newBoard);
       }
-      if (mounted) context.pop();
+      if (success && mounted) context.pop();
     }
   }
 
@@ -84,6 +86,7 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
               title: 'Title',
               controller: titleCtlr,
               hintText: 'Project title',
+              validator: InputValidator.required,
             ),
             vSpace20,
             KTextField(

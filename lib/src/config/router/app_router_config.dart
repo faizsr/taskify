@@ -83,6 +83,19 @@ class AppRouterConfig {
           );
         },
       ),
+
+      GoRoute(
+        path: AppRoutes.editTask,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map;
+          return CustomFadeTransition(
+            child: CreateEditTaskPage(
+              boardId: extra['boardId'],
+              task: extra['task'],
+            ),
+          );
+        },
+      ),
     ],
   );
 }
