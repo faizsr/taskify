@@ -1,10 +1,22 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
+import 'package:taskify/src/config/di/injections.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
+import 'package:taskify/src/core/common/confirm_dialog.dart';
+import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
+import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
 class TaskCard extends StatefulWidget {
-  const TaskCard({super.key});
+  const TaskCard({super.key, required this.task, required this.canEdit});
+
+  final TaskEntity task;
+  final bool canEdit;
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -12,6 +24,36 @@ class TaskCard extends StatefulWidget {
 
 class _TaskCardState extends State<TaskCard> {
   String selectedStatus = 'to-do';
+
+  void _updateTaskStatus(String? value) {
+    final boardCtlr = context.read<BoardController>();
+    final task = TaskEntity(id: widget.task.id, status: value!);
+    boardCtlr.updateTask(task);
+    setState(() => selectedStatus = value);
+  }
+
+  void _onDeleteTaskPressed() {
+    String subTitle =
+        'You’re about to delete this task. This action is irreversible.';
+    showDialog(
+      context: context,
+      barrierColor: AppColors.black.withValues(alpha: 0.6),
+      builder: (context) {
+        return ConfirmDialog(
+          icon: '?',
+          disableCancel: true,
+          title: 'Confirm Delete',
+          subTitle: subTitle,
+          onPressed: () async {
+            context.pop();
+            final boardCtlr = context.read<BoardController>();
+            final status = await boardCtlr.deleteTask(widget.task.id);
+            if (status && context.mounted) context.pop();
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,47 +65,44 @@ class _TaskCardState extends State<TaskCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              hSpace12,
-              Text(
-                'Assigned to You',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.blue),
-              ),
-              Spacer(),
-              Text(
-                '28 Jan 2026',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) {
-                  return [
-                    PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  ];
-                },
-                iconSize: 20,
-                elevation: 0,
-                color: AppColors.white,
-                position: PopupMenuPosition.under,
-                menuPadding: const EdgeInsets.all(2),
-                popUpAnimationStyle: AnimationStyle(
-                  curve: Curves.easeIn,
-                  reverseCurve: Curves.easeOut,
-                  duration: const Duration(milliseconds: 400),
-                  reverseDuration: const Duration(milliseconds: 400),
+          Padding(
+            padding: widget.canEdit
+                ? EdgeInsets.only(left: 12)
+                : EdgeInsets.fromLTRB(12, 12, 12, 12),
+            child: Row(
+              children: [
+                Selector<BoardController, List<UserEntity>>(
+                  selector: (context, ctlr) => ctlr.allUsers,
+                  builder: (context, value, child) {
+                    final currentUserId = sl<FirebaseAuth>().currentUser?.uid;
+                    final user = value.firstWhere(
+                      (e) => e.uid == widget.task.assignedTo,
+                      orElse: () => UserEntity(),
+                    );
+                    return Text(
+                      'Assigned to ${user.uid == currentUserId ? 'You' : user.name}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.blue),
+                    );
+                  },
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                Spacer(),
+                Text(
+                  DateFormat('dd MMM yyyy').format(widget.task.createdAt!),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
                 ),
-                offset: Offset(-12, 0),
-                onSelected: (value) {},
-              ),
-            ],
+                if (widget.canEdit) ...[
+                  IconButton(
+                    onPressed: _onDeleteTaskPressed,
+                    icon: Icon(SolarIconsOutline.trashBinMinimalistic),
+                    iconSize: 20,
+                  ),
+                ],
+              ],
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -71,16 +110,18 @@ class _TaskCardState extends State<TaskCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Task Title',
+                  widget.task.title,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                vSpace4,
-                Text(
-                  'Task description description description description description description',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.black.withValues(alpha: 0.8),
+                if (widget.task.description.isNotEmpty) ...[
+                  vSpace4,
+                  Text(
+                    widget.task.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.black.withValues(alpha: 0.8),
+                    ),
                   ),
-                ),
+                ],
                 vSpace12,
 
                 Row(
@@ -101,7 +142,9 @@ class _TaskCardState extends State<TaskCard> {
                           ),
                           hSpace12,
                           Text(
-                            '18 Jan 2026',
+                            DateFormat(
+                              'dd MMM yyyy',
+                            ).format(widget.task.dueDate!),
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ],
@@ -123,7 +166,7 @@ class _TaskCardState extends State<TaskCard> {
     return Stack(
       children: [
         DropdownMenu<String>(
-          initialSelection: 'to-do',
+          initialSelection: widget.task.status,
           textStyle: Theme.of(context).textTheme.titleSmall,
           dropdownMenuEntries: const [
             DropdownMenuEntry(value: 'to-do', label: 'To do'),
@@ -131,7 +174,7 @@ class _TaskCardState extends State<TaskCard> {
             DropdownMenuEntry(value: 'done', label: 'Done'),
           ],
           showTrailingIcon: false,
-          onSelected: (value) => setState(() => selectedStatus = value!),
+          onSelected: _updateTaskStatus,
           menuStyle: MenuStyle(
             elevation: WidgetStatePropertyAll(0),
             backgroundColor: WidgetStatePropertyAll(AppColors.white),
@@ -147,10 +190,10 @@ class _TaskCardState extends State<TaskCard> {
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             isCollapsed: true,
-            fillColor: selectedStatus == 'to-do'
+            fillColor: widget.task.status == 'to-do'
                 ? AppColors.lightGrey
-                : selectedStatus == 'done'
-                ? Colors.yellowAccent
+                : widget.task.status == 'done'
+                ? Colors.amberAccent
                 : Colors.lightBlueAccent,
             contentPadding: const EdgeInsets.all(8),
             border: OutlineInputBorder(

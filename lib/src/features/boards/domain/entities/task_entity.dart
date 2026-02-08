@@ -1,6 +1,7 @@
 import 'package:taskify/src/features/boards/data/models/task_model.dart';
 
 class TaskEntity {
+  final String id;
   final String boardId;
   final String title;
   final String description;
@@ -12,12 +13,13 @@ class TaskEntity {
   final DateTime? createdAt;
 
   TaskEntity({
-    required this.boardId,
-    required this.title,
-    required this.description,
-    required this.status,
-    required this.assignedTo,
-    required this.createdBy,
+    this.id = '',
+    this.boardId = '',
+    this.title = '',
+    this.description = '',
+    this.status = '',
+    this.assignedTo = '',
+    this.createdBy = '',
     this.dueDate,
     this.startDate,
     this.createdAt,
@@ -25,6 +27,7 @@ class TaskEntity {
 
   TaskModel toModel() {
     return TaskModel(
+      id: id,
       boardId: boardId,
       title: title,
       description: description,

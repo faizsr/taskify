@@ -39,14 +39,14 @@ class _BoardListPageState extends State<BoardListPage> {
       appBar: _buildHeader(),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            _buildTitle(context),
-            vSpace12,
-            Consumer<BoardController>(
-              builder: (context, value, child) {
-                if (value.boards.isNotEmpty) {
-                  return ListView.separated(
+        child: Consumer<BoardController>(
+          builder: (context, value, child) {
+            if (value.boards.isNotEmpty) {
+              return ListView(
+                children: [
+                  _buildTitle(context),
+                  vSpace12,
+                  ListView.separated(
                     shrinkWrap: true,
                     itemCount: value.boards.length,
                     physics: const NeverScrollableScrollPhysics(),
@@ -54,14 +54,42 @@ class _BoardListPageState extends State<BoardListPage> {
                     itemBuilder: (context, index) {
                       return BoardCard(board: value.boards[index]);
                     },
-                  );
-                }
+                  ),
+                ],
+              );
+            }
 
-                return SizedBox();
-              },
-            ),
-          ],
+            return _buildEmptyBoardWidget(context);
+          },
         ),
+      ),
+    );
+  }
+
+  Center _buildEmptyBoardWidget(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              context.push(AppRoutes.createBoard);
+            },
+            child: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.blue,
+              ),
+              child: Icon(Icons.add, size: 20, color: AppColors.white),
+            ),
+          ),
+          vSpace8,
+          Text(
+            'No boards found',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
       ),
     );
   }
@@ -100,9 +128,9 @@ class _BoardListPageState extends State<BoardListPage> {
         IconButton(
           icon: Icon(SolarIconsOutline.logout),
           onPressed: () {
+            context.read<BoardController>().clearOnLogout();
             sl<FirebaseAuth>().signOut();
             context.go(AppRoutes.login);
-            context.read<BoardController>().clearOnLogout();
           },
         ),
         hSpace4,

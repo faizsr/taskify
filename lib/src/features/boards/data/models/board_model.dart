@@ -50,6 +50,7 @@ class BoardModel {
       title: title,
       description: description,
       members: members,
+      tasks: tasks,
       createdBy: createdBy,
       createdAt: createdAt,
     );
@@ -60,6 +61,7 @@ class BoardModel {
     String? title,
     String? description,
     List<String>? members,
+    List<String>? tasks,
     String? createdBy,
     DateTime? createdAt,
   }) {
@@ -68,6 +70,7 @@ class BoardModel {
       title: title ?? this.title,
       description: description ?? this.description,
       members: members ?? this.members,
+      tasks: tasks ?? this.tasks,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
     );

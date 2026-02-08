@@ -7,7 +7,7 @@ import 'package:taskify/src/features/auth/presentation/views/register_page.dart'
 import 'package:taskify/src/features/boards/presentation/views/board_detail_page.dart';
 import 'package:taskify/src/features/boards/presentation/views/board_list_page.dart';
 import 'package:taskify/src/features/boards/presentation/views/create_edit_board_page.dart';
-import 'package:taskify/src/features/boards/presentation/views/create_task_page.dart';
+import 'package:taskify/src/features/boards/presentation/views/create_edit_task_page.dart';
 import 'package:taskify/src/features/onboarding/presentation/views/onboarding_page.dart';
 import 'package:taskify/src/features/splash/presentation/views/splash_page.dart';
 
@@ -77,7 +77,10 @@ class AppRouterConfig {
       GoRoute(
         path: AppRoutes.createTask,
         pageBuilder: (context, state) {
-          return CustomFadeTransition(child: CreateTaskPage());
+          final extra = state.extra as Map;
+          return CustomFadeTransition(
+            child: CreateEditTaskPage(boardId: extra['boardId']),
+          );
         },
       ),
     ],

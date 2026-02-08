@@ -6,7 +6,6 @@ class KDropDownMenu extends StatefulWidget {
     super.key,
     this.onSelected,
     this.fillColor,
-    required this.title,
     this.hintText,
     this.initialSelection,
     this.border = true,
@@ -23,7 +22,6 @@ class KDropDownMenu extends StatefulWidget {
 
   final void Function(String?)? onSelected;
   final Color? fillColor;
-  final String title;
   final String? hintText;
   final String? initialSelection;
   final bool border;

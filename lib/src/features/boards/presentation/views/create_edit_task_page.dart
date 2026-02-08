@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
@@ -7,28 +8,47 @@ import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/k_drop_down_menu.dart';
 import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/core/common/k_text_field.dart';
+import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
+import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
-class CreateTaskPage extends StatefulWidget {
-  const CreateTaskPage({super.key});
+class CreateEditTaskPage extends StatefulWidget {
+  const CreateEditTaskPage({super.key, required this.boardId});
 
+  final String boardId;
   @override
-  State<CreateTaskPage> createState() => _CreateTaskPageState();
+  State<CreateEditTaskPage> createState() => _CreateEditTaskPageState();
 }
 
-class _CreateTaskPageState extends State<CreateTaskPage> {
+class _CreateEditTaskPageState extends State<CreateEditTaskPage> {
   final titleCtlr = TextEditingController();
   final descriptionCtlr = TextEditingController();
   final memberSearchCtlr = TextEditingController();
-  final formKey = GlobalKey<FormState>();
   final startDateCtlr = TextEditingController();
   final endDateCtlr = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   String member = '';
   DateTime? startDate;
   DateTime? endDate;
 
-  Future<void> _onCreatePressed() async {}
+  Future<void> _onCreatePressed() async {
+    final boardCtlr = context.read<BoardController>();
+    if (formKey.currentState!.validate()) {
+      final task = TaskEntity(
+        boardId: widget.boardId,
+        title: titleCtlr.text,
+        description: descriptionCtlr.text,
+        status: 'to-do',
+        assignedTo: member,
+        startDate: startDate,
+        dueDate: endDate,
+        createdAt: DateTime.now(),
+      );
+      await boardCtlr.createTask(task);
+    }
+    if (mounted) context.pop();
+  }
 
   Future<void> _pickDate({
     required BuildContext context,
@@ -53,10 +73,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
 
     if (picked == null) return;
 
-    final formatted =
-        '${picked.day.toString().padLeft(2, '0')}-'
-        '${picked.month.runtimeType}-'
-        '${picked.year}';
+    final formatted = DateFormat('dd MMM yyy').format(picked);
 
     setState(() {
       if (isStartDate) {
@@ -113,7 +130,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                 Expanded(
                   child: KTextField(
                     title: 'Start date',
-                    canRequestFocus: false,
+                    canRequestFocus: true,
                     controller: startDateCtlr,
                     onTap: () => _pickDate(context: context, isStartDate: true),
                   ),
@@ -122,7 +139,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                 Expanded(
                   child: KTextField(
                     title: 'End date',
-                    canRequestFocus: false,
+                    canRequestFocus: true,
                     controller: endDateCtlr,
                     onTap: () =>
                         _pickDate(context: context, isStartDate: false),
@@ -158,15 +175,25 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
         if (member.isNotEmpty) ...[
           _buildMemberEmailCard(member),
         ] else ...[
-          KDropDownMenu(
-            title: 'Members',
-            list: ['one', 'two'],
-            controller: memberSearchCtlr,
-            hintText: 'Seaerch to assign',
-            onSelected: (val) {
-              member = val!;
-              memberSearchCtlr.clear();
-              setState(() {});
+          Consumer<BoardController>(
+            builder: (context, value, child) {
+              final currentUser = value.currentUser;
+              final users = List<UserEntity>.from(value.allUsers)
+                ..removeWhere((e) => e.uid == currentUser?.uid);
+              final emails = users.map((e) => e.email).toList();
+              return KDropDownMenu(
+                list: emails.isEmpty ? ['none'] : emails,
+                controller: memberSearchCtlr,
+                hintText: 'Seaerch to assign',
+                onSelected: (val) {
+                  if (val != 'none') {
+                    final user = users.firstWhere((e) => e.email == val);
+                    member = user.uid;
+                    memberSearchCtlr.clear();
+                    setState(() {});
+                  }
+                },
+              );
             },
           ),
         ],
@@ -184,7 +211,16 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(member),
+          Selector<BoardController, List<UserEntity>>(
+            selector: (context, ctlr) => ctlr.allUsers,
+            builder: (context, value, child) {
+              final user = value.firstWhere(
+                (e) => e.uid == member,
+                orElse: () => UserEntity(),
+              );
+              return Text(user.email);
+            },
+          ),
           hSpace8,
           GestureDetector(
             onTap: () => setState(() => member = ''),

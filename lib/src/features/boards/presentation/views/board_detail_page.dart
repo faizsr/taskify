@@ -7,8 +7,10 @@ import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/confirm_dialog.dart';
+import 'package:taskify/src/core/common/k_filled_button.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
+import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 import 'package:taskify/src/features/boards/presentation/widgets/task_card.dart';
 
@@ -21,13 +23,39 @@ class BoardDetailPage extends StatefulWidget {
 }
 
 class _BoardDetailPageState extends State<BoardDetailPage> {
+  bool canEdit = true;
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final boardCtlr = context.read<BoardController>();
       boardCtlr.getBoard(widget.id);
+      boardCtlr.getAllTasks(widget.id);
     });
     super.initState();
+  }
+
+  void _onDeletePressed() {
+    String subTitle =
+        'You’re about to delete this board. This action is irreversible.';
+    showDialog(
+      context: context,
+      barrierColor: AppColors.black.withValues(alpha: 0.6),
+      builder: (context) {
+        return ConfirmDialog(
+          icon: '?',
+          disableCancel: true,
+          title: 'Confirm Delete',
+          subTitle: subTitle,
+          onPressed: () async {
+            context.pop();
+            final boardCtlr = context.read<BoardController>();
+            final status = await boardCtlr.deleteBoard(widget.id);
+            if (status && context.mounted) context.pop();
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -35,8 +63,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     return Consumer<BoardController>(
       builder: (context, value, child) {
         if (value.board != null) {
+          canEdit = value.currentUser?.uid == value.board?.createdBy;
           return Scaffold(
-            appBar: _buildAppBar(value.currentUser?.uid, value.board!),
+            appBar: _buildAppBar(value.board!),
             body: ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -44,29 +73,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                 vSpace20,
                 _buildMembersSection(value.board!, value.allUsers),
                 vSpace28,
-                Row(
-                  children: [
-                    _buildStatusCard(
-                      context: context,
-                      icon: SolarIconsOutline.calendar,
-                      title: 'Created At',
-                      value: DateFormat(
-                        'dd MMM yyyy',
-                      ).format(value.board!.createdAt!),
-                    ),
-                    hSpace12,
-                    _buildStatusCard(
-                      context: context,
-                      icon: SolarIconsOutline.documentAdd,
-                      title: 'Created By',
-                      value: value.allUsers
-                          .firstWhere((e) => e.uid == value.board?.createdBy)
-                          .email,
-                    ),
-                  ],
-                ),
+                _buildTaskStatus(context, value),
                 vSpace24,
-                _buildTaskList(context),
+                _buildTaskList(value.tasks),
               ],
             ),
           );
@@ -77,29 +86,28 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     );
   }
 
-  AppBar _buildAppBar(String? currentUserId, BoardEntity board) {
-    return AppBar(
-      titleSpacing: 0,
-      title: Text(board.title),
-      centerTitle: currentUserId != board.createdBy,
-      leading: IconButton(
-        icon: Icon(SolarIconsOutline.arrowLeft),
-        onPressed: () => context.pop(),
-      ),
-      actions: currentUserId == board.createdBy
-          ? [
-              IconButton(
-                icon: Icon(SolarIconsOutline.pen2),
-                onPressed: () {
-                  context.push(AppRoutes.editBoard, extra: {'board': board});
-                },
-              ),
-              IconButton(
-                icon: Icon(SolarIconsOutline.trashBinMinimalistic),
-                onPressed: _onDeletePressed,
-              ),
-            ]
-          : [],
+  Row _buildTaskStatus(BuildContext context, BoardController value) {
+    final currentUserId = value.currentUser?.uid ?? '';
+    final user = value.allUsers.firstWhere(
+      (e) => e.uid == value.board?.createdBy,
+      orElse: () => UserEntity(),
+    );
+    return Row(
+      children: [
+        _buildStatusCard(
+          context: context,
+          icon: SolarIconsOutline.calendar,
+          title: 'Created At',
+          value: DateFormat('dd MMM yyyy').format(value.board!.createdAt!),
+        ),
+        hSpace12,
+        _buildStatusCard(
+          context: context,
+          icon: SolarIconsOutline.documentAdd,
+          title: 'Created By',
+          value: user.uid == currentUserId ? 'You' : user.name,
+        ),
+      ],
     );
   }
 
@@ -229,7 +237,15 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     );
   }
 
-  Widget _buildTaskList(BuildContext context) {
+  Widget _buildTaskList(List<TaskEntity> tasks) {
+    if (tasks.isEmpty) {
+      return KFilledButton(
+        text: 'Create Task',
+        onPressed: () {
+          context.push(AppRoutes.createTask, extra: {'boardId': widget.id});
+        },
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,7 +260,10 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
             ),
             GestureDetector(
               onTap: () {
-                context.push(AppRoutes.createTask);
+                context.push(
+                  AppRoutes.createTask,
+                  extra: {'boardId': widget.id},
+                );
               },
               child: Container(
                 padding: EdgeInsets.all(6),
@@ -259,36 +278,41 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
         ),
         vSpace12,
         ListView.separated(
-          itemCount: 5,
+          itemCount: tasks.length,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           separatorBuilder: (context, index) => vSpace16,
           itemBuilder: (context, index) {
-            return TaskCard();
+            return TaskCard(task: tasks[index], canEdit: canEdit);
           },
         ),
       ],
     );
   }
 
-  void _onDeletePressed() {
-    String subTitle =
-        'You’re about to delete this board. This action is irreversible.';
-    showDialog(
-      context: context,
-      barrierColor: AppColors.black.withValues(alpha: 0.6),
-      builder: (context) {
-        return ConfirmDialog(
-          icon: '?',
-          disableCancel: true,
-          title: 'Confirm Delete',
-          subTitle: subTitle,
-          onPressed: () {
-            context.pop();
-            context.pop();
-          },
-        );
-      },
+  AppBar _buildAppBar(BoardEntity board) {
+    return AppBar(
+      titleSpacing: 0,
+      title: Text(board.title),
+      centerTitle: canEdit,
+      leading: IconButton(
+        icon: Icon(SolarIconsOutline.arrowLeft),
+        onPressed: () => context.pop(),
+      ),
+      actions: canEdit
+          ? [
+              IconButton(
+                icon: Icon(SolarIconsOutline.pen2),
+                onPressed: () {
+                  context.push(AppRoutes.editBoard, extra: {'board': board});
+                },
+              ),
+              IconButton(
+                icon: Icon(SolarIconsOutline.trashBinMinimalistic),
+                onPressed: _onDeletePressed,
+              ),
+            ]
+          : [],
     );
   }
 }

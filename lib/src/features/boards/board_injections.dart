@@ -4,11 +4,16 @@ import 'package:taskify/src/features/boards/data/data_sources/remote/board_remot
 import 'package:taskify/src/features/boards/data/repositories/board_repository_impl.dart';
 import 'package:taskify/src/features/boards/domain/repositories/board_repository.dart';
 import 'package:taskify/src/features/boards/domain/usecases/create_board_usecase.dart';
+import 'package:taskify/src/features/boards/domain/usecases/create_task_usecase.dart';
+import 'package:taskify/src/features/boards/domain/usecases/delete_board_usecase.dart';
+import 'package:taskify/src/features/boards/domain/usecases/delete_task_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/get_all_boards_usecase.dart';
+import 'package:taskify/src/features/boards/domain/usecases/get_all_tasks_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/get_all_users_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/get_board_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/get_current_user_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/update_board_usecase.dart';
+import 'package:taskify/src/features/boards/domain/usecases/update_task_usecase.dart';
 import 'package:taskify/src/features/boards/presentation/controllers/board_controller.dart';
 
 void initBoardInjections() {
@@ -29,6 +34,9 @@ void initBoardInjections() {
   sl.registerLazySingleton<UpdateBoardUsecase>(
     () => UpdateBoardUsecase(boardRepository: sl()),
   );
+  sl.registerLazySingleton<DeleteBoardUsecase>(
+    () => DeleteBoardUsecase(boardRepository: sl()),
+  );
   sl.registerLazySingleton<GetCurrentUserUsecase>(
     () => GetCurrentUserUsecase(boardRepository: sl()),
   );
@@ -41,6 +49,18 @@ void initBoardInjections() {
   sl.registerLazySingleton<GetBoardUsecase>(
     () => GetBoardUsecase(boardRepository: sl()),
   );
+  sl.registerLazySingleton<CreateTaskUsecase>(
+    () => CreateTaskUsecase(boardRepository: sl()),
+  );
+  sl.registerLazySingleton<UpdateTaskUsecase>(
+    () => UpdateTaskUsecase(boardRepository: sl()),
+  );
+  sl.registerLazySingleton<DeleteTaskUsecase>(
+    () => DeleteTaskUsecase(boardRepository: sl()),
+  );
+  sl.registerLazySingleton<GetAllTasksUsecase>(
+    () => GetAllTasksUsecase(boardRepository: sl()),
+  );
 
   // Board Controller
   sl.registerFactory(
@@ -51,6 +71,11 @@ void initBoardInjections() {
       getAllUsersUsecase: sl(),
       getAllBoardsUsecase: sl(),
       getBoardUsecase: sl(),
+      createTaskUsecase: sl(),
+      updateTaskUsecase: sl(),
+      deleteTaskUsecase: sl(),
+      getAllTasksUsecase: sl(),
+      deleteBoardUsecase: sl(),
     ),
   );
 }

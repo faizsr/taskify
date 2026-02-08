@@ -1,6 +1,7 @@
 import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 
 class TaskModel {
+  final String id;
   final String boardId;
   final String title;
   final String description;
@@ -12,6 +13,7 @@ class TaskModel {
   final DateTime? createdAt;
 
   TaskModel({
+    required this.id,
     required this.boardId,
     required this.title,
     required this.description,
@@ -25,6 +27,7 @@ class TaskModel {
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
+      id: json['id'],
       boardId: json['boardId'],
       title: json['title'],
       description: json['description'],
@@ -39,6 +42,7 @@ class TaskModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'boardId': boardId,
       'title': title,
       'description': description,
@@ -53,6 +57,7 @@ class TaskModel {
 
   TaskEntity toEntity() {
     return TaskEntity(
+      id: id,
       boardId: boardId,
       title: title,
       description: description,
@@ -62,6 +67,32 @@ class TaskModel {
       createdAt: createdAt,
       dueDate: dueDate,
       startDate: startDate,
+    );
+  }
+
+  TaskModel copyWith({
+    String? id,
+    String? boardId,
+    String? title,
+    String? description,
+    String? status,
+    String? assignedTo,
+    String? createdBy,
+    DateTime? dueDate,
+    DateTime? startDate,
+    DateTime? createdAt,
+  }) {
+    return TaskModel(
+      id: id ?? this.id,
+      boardId: boardId ?? this.boardId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      assignedTo: assignedTo ?? this.assignedTo,
+      createdBy: createdBy ?? this.createdBy,
+      dueDate: dueDate ?? this.dueDate,
+      startDate: startDate ?? this.startDate,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

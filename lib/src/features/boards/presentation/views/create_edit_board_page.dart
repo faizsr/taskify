@@ -147,7 +147,6 @@ class _CreateBoardPageState extends State<CreateBoardPage> {
               ..removeWhere((e) => e.uid == currentUser?.uid);
             final emails = users.map((e) => e.email).toList();
             return KDropDownMenu(
-              title: 'Members',
               list: emails.isEmpty ? ['none'] : emails,
               controller: memberSearchCtlr,
               hintText: 'Search to add members',

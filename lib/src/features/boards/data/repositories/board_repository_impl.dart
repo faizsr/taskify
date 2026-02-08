@@ -1,6 +1,7 @@
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/boards/data/data_sources/remote/board_remote_data_source.dart';
 import 'package:taskify/src/features/boards/domain/entities/board_entity.dart';
+import 'package:taskify/src/features/boards/domain/entities/task_entity.dart';
 import 'package:taskify/src/features/boards/domain/repositories/board_repository.dart';
 
 class BoardRepositoryImpl implements BoardRepository {
@@ -44,5 +45,26 @@ class BoardRepositoryImpl implements BoardRepository {
   @override
   Stream<BoardEntity> getBoard(String id) {
     return boardRemoteDataSource.getBoard(id).map((e) => e.toEntity());
+  }
+
+  @override
+  Future<void> createTask(TaskEntity task) async {
+    return await boardRemoteDataSource.createTask(task.toModel());
+  }
+
+  @override
+  Future<void> deleteTask(String id) async {
+    return await boardRemoteDataSource.deleteTask(id);
+  }
+
+  @override
+  Stream<List<TaskEntity>> getAllTasks(String boardId) {
+    final tasks = boardRemoteDataSource.getAllTasks(boardId);
+    return tasks.map((e) => e.map((e) => e.toEntity()).toList());
+  }
+
+  @override
+  Future<void> updateTask(TaskEntity task) async {
+    return await boardRemoteDataSource.updateTask(task.toModel());
   }
 }
