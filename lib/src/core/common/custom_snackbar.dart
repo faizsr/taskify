@@ -21,7 +21,7 @@ void showCustomSnackbar({
   } else if (type == SnackType.info) {
     leading = SolarIconsOutline.infoCircle;
   } else if (type == SnackType.noInternet) {
-    leading = SolarIconsOutline.wifiRouterMinimalistic;
+    leading = Icons.wifi_off_outlined;
     content = 'Check your internet connection';
   }
 

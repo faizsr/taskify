@@ -15,7 +15,7 @@ class AuthController extends ChangeNotifier {
   AuthController({required this.loginUsecase, required this.registerUsecase});
 
   bool isBtnLoading = false;
-  bool isNetworkConnected = false;
+  bool isNetworkConnected = true;
 
   String _getErrorMessage(AuthResponse response) {
     switch (response) {
@@ -41,7 +41,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> login(UserEntity user) async {
-    if (isNetworkConnected) {
+    if (!isNetworkConnected) {
       showCustomSnackbar(type: SnackType.noInternet);
       return false;
     }
@@ -69,7 +69,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> register(UserEntity user) async {
-    if (isNetworkConnected) {
+    if (!isNetworkConnected) {
       showCustomSnackbar(type: SnackType.noInternet);
       return false;
     }
@@ -100,18 +100,24 @@ class AuthController extends ChangeNotifier {
   }
 
   void checkNetworkConnection() async {
-    Connectivity().onConnectivityChanged.listen((
-      List<ConnectivityResult> result,
-    ) {
-      log('network: $result');
-      if (result.contains(ConnectivityResult.mobile)) {
-        isNetworkConnected = true;
-      } else if (result.contains(ConnectivityResult.wifi)) {
-        isNetworkConnected = true;
-      } else if (result.contains(ConnectivityResult.none)) {
-        isNetworkConnected = false;
-      }
-      notifyListeners();
-    });
+    final connectivityResult = await (Connectivity().checkConnectivity());
+
+    _updateConnectionStatus(connectivityResult);
+
+    Connectivity().onConnectivityChanged.listen(
+      (List<ConnectivityResult> result) => _updateConnectionStatus(result),
+    );
+  }
+
+  void _updateConnectionStatus(List<ConnectivityResult> result) {
+    log('network: $result');
+    if (result.contains(ConnectivityResult.mobile)) {
+      isNetworkConnected = true;
+    } else if (result.contains(ConnectivityResult.wifi)) {
+      isNetworkConnected = true;
+    } else if (result.contains(ConnectivityResult.none)) {
+      isNetworkConnected = false;
+    }
+    notifyListeners();
   }
 }
