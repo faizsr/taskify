@@ -1,10 +1,22 @@
+import 'package:hive_ce/hive.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 
+part 'user_model.g.dart';
+
+@HiveType(typeId: 2)
 class UserModel {
+  @HiveField(0)
   final String uid;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final String email;
+
   final String password;
+
+  @HiveField(3)
   final DateTime? createdAt;
 
   UserModel({
@@ -17,10 +29,12 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      uid: json['uid'],
-      name: json['name'],
-      email: json['email'],
-      createdAt: DateTime.parse(json['createdAt']),
+      uid: json['uid'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
     );
   }
 
@@ -33,7 +47,7 @@ class UserModel {
     };
   }
 
-  UserEntity toModel() {
+  UserEntity toEntity() {
     return UserEntity(
       uid: uid,
       name: name,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
+import 'package:taskify/src/config/constants/app_constants.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 
 class KTextField extends StatefulWidget {
   const KTextField({
     super.key,
+    this.canRequestFocus = true,
+    this.title = '',
     this.hintText = '',
     this.controller,
     this.validator,
@@ -23,8 +26,11 @@ class KTextField extends StatefulWidget {
     this.maxLines = 1,
     this.maxLength,
     this.padding,
+    this.onTap,
   });
 
+  final bool canRequestFocus;
+  final String title;
   final String hintText;
   final double height;
   final TextEditingController? controller;
@@ -43,6 +49,7 @@ class KTextField extends StatefulWidget {
   final int? maxLines;
   final int? maxLength;
   final EdgeInsets? padding;
+  final void Function()? onTap;
 
   @override
   State<KTextField> createState() => _KTextFieldState();
@@ -61,64 +68,77 @@ class _KTextFieldState extends State<KTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      maxLines: widget.maxLines,
-      initialValue: widget.initialValue,
-      obscureText: obscure,
-      textAlign: widget.textAlign,
-      controller: widget.controller,
-      autovalidateMode: widget.autovalidateMode,
-      validator: widget.validator,
-      keyboardType: widget.keyboardType,
-      readOnly: widget.readOnly,
-      onChanged: widget.onChanged,
-      maxLength: widget.maxLength,
-      onTapOutside: (event) {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      decoration: InputDecoration(
-        hintText: widget.hintText,
-        prefixIcon: Padding(
-          padding: EdgeInsets.only(left: widget.prefixPadding),
-          child: widget.prefix,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.title.isNotEmpty) ...[
+          Text(widget.title, style: Theme.of(context).textTheme.titleMedium),
+          vSpace4,
+        ],
+        TextFormField(
+          canRequestFocus: widget.canRequestFocus,
+          maxLines: widget.maxLines,
+          initialValue: widget.initialValue,
+          obscureText: obscure,
+          textAlign: widget.textAlign,
+          controller: widget.controller,
+          autovalidateMode: widget.autovalidateMode,
+          validator: widget.validator,
+          keyboardType: widget.keyboardType,
+          readOnly: widget.readOnly,
+          onChanged: widget.onChanged,
+          maxLength: widget.maxLength,
+          onTap: widget.onTap,
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            prefixIcon: Padding(
+              padding: EdgeInsets.only(left: widget.prefixPadding),
+              child: widget.prefix,
+            ),
+            suffixIcon: Padding(
+              padding: EdgeInsets.only(right: widget.suffixPadding),
+              child: widget.isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        obscure ? SolarIconsBold.eye : SolarIconsBold.eyeClosed,
+                        color: AppColors.grey,
+                        size: 20,
+                      ),
+                      onPressed: onEyePressed,
+                    )
+                  : null,
+            ),
+            prefixIconConstraints: BoxConstraints(maxHeight: widget.height),
+            suffixIconConstraints: BoxConstraints(maxHeight: widget.height),
+            hintStyle: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
+            contentPadding: widget.padding ?? EdgeInsets.fromLTRB(16, 0, 16, 0),
+            constraints: BoxConstraints(maxHeight: widget.height),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppColors.lightGrey),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppColors.lightGrey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppColors.grey),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         ),
-        suffixIcon: Padding(
-          padding: EdgeInsets.only(right: widget.suffixPadding),
-          child: widget.isPassword
-              ? IconButton(
-                  icon: Icon(
-                    obscure ? SolarIconsBold.eye : SolarIconsBold.eyeClosed,
-                    color: AppColors.grey,
-                    size: 20,
-                  ),
-                  onPressed: onEyePressed,
-                )
-              : null,
-        ),
-        prefixIconConstraints: BoxConstraints(maxHeight: widget.height),
-        suffixIconConstraints: BoxConstraints(maxHeight: widget.height),
-        hintStyle: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-        contentPadding: widget.padding ?? EdgeInsets.fromLTRB(16, 0, 16, 0),
-        constraints: BoxConstraints(maxHeight: widget.height),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.lighGrey),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.lighGrey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.grey),
-        ),
-        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      ],
     );
   }
 }

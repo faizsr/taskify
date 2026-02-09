@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/widgets.dart';
-import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/core/utils/enums.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:taskify/src/features/auth/domain/usecases/register_usecase.dart';
@@ -12,6 +15,7 @@ class AuthController extends ChangeNotifier {
   AuthController({required this.loginUsecase, required this.registerUsecase});
 
   bool isBtnLoading = false;
+  bool isNetworkConnected = true;
 
   String _getErrorMessage(AuthResponse response) {
     switch (response) {
@@ -37,6 +41,11 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> login(UserEntity user) async {
+    if (!isNetworkConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return false;
+    }
+
     isBtnLoading = true;
     notifyListeners();
 
@@ -44,6 +53,8 @@ class AuthController extends ChangeNotifier {
 
     if (response == AuthResponse.success) {
       showCustomSnackbar(type: SnackType.success, content: 'Login successful');
+      isBtnLoading = false;
+      notifyListeners();
       return true;
     } else {
       showCustomSnackbar(
@@ -58,6 +69,11 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> register(UserEntity user) async {
+    if (!isNetworkConnected) {
+      showCustomSnackbar(type: SnackType.noInternet);
+      return false;
+    }
+
     isBtnLoading = true;
     notifyListeners();
 
@@ -68,6 +84,8 @@ class AuthController extends ChangeNotifier {
         type: SnackType.success,
         content: 'Registration completed successfully',
       );
+      isBtnLoading = false;
+      notifyListeners();
       return true;
     } else {
       showCustomSnackbar(
@@ -79,5 +97,27 @@ class AuthController extends ChangeNotifier {
     isBtnLoading = false;
     notifyListeners();
     return false;
+  }
+
+  void checkNetworkConnection() async {
+    final connectivityResult = await (Connectivity().checkConnectivity());
+
+    _updateConnectionStatus(connectivityResult);
+
+    Connectivity().onConnectivityChanged.listen(
+      (List<ConnectivityResult> result) => _updateConnectionStatus(result),
+    );
+  }
+
+  void _updateConnectionStatus(List<ConnectivityResult> result) {
+    log('network: $result');
+    if (result.contains(ConnectivityResult.mobile)) {
+      isNetworkConnected = true;
+    } else if (result.contains(ConnectivityResult.wifi)) {
+      isNetworkConnected = true;
+    } else if (result.contains(ConnectivityResult.none)) {
+      isNetworkConnected = false;
+    }
+    notifyListeners();
   }
 }
