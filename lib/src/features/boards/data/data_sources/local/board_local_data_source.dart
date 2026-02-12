@@ -14,5 +14,5 @@ abstract class BoardLocalDataSource {
   Future<void> cacheCurrentUser(UserModel user);
   UserModel? getCachedCurrentUser();
 
-  Future<void> clearAll();
+  Future<void> clearCache();
 }

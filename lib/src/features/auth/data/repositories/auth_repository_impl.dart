@@ -17,4 +17,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResponse> register(UserEntity user) async {
     return await authRemoteDataSource.register(user.toModel());
   }
+
+  @override
+  Future<void> logout() async => await authRemoteDataSource.logout();
 }

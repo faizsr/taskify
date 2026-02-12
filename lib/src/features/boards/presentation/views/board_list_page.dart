@@ -1,10 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:taskify/src/config/constants/app_constants.dart';
-import 'package:taskify/src/config/di/injections.dart';
 import 'package:taskify/src/config/router/app_routes.dart';
 import 'package:taskify/src/config/styles/app_colors.dart';
 import 'package:taskify/src/core/common/custom_snackbar.dart';
@@ -141,8 +139,8 @@ class _BoardListPageState extends State<BoardListPage> {
           icon: Icon(SolarIconsOutline.logout),
           onPressed: () {
             if (authCtlr.isNetworkConnected) {
-              boardCtlr.clearOnLogout();
-              sl<FirebaseAuth>().signOut();
+              boardCtlr.clearListeners();
+              authCtlr.logout();
               context.go(AppRoutes.login);
             } else {
               showCustomSnackbar(type: SnackType.noInternet);

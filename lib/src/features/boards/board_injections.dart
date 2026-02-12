@@ -9,6 +9,7 @@ import 'package:taskify/src/features/boards/data/models/board_model.dart';
 import 'package:taskify/src/features/boards/data/models/task_model.dart';
 import 'package:taskify/src/features/boards/data/repositories/board_repository_impl.dart';
 import 'package:taskify/src/features/boards/domain/repositories/board_repository.dart';
+import 'package:taskify/src/features/boards/domain/usecases/clear_cache_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/create_board_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/create_task_usecase.dart';
 import 'package:taskify/src/features/boards/domain/usecases/delete_board_usecase.dart';
@@ -88,6 +89,9 @@ void initBoardInjections() {
   );
   sl.registerLazySingleton<GetAllTasksUsecase>(
     () => GetAllTasksUsecase(boardRepository: sl()),
+  );
+  sl.registerLazySingleton<ClearCacheUsecase>(
+    () => ClearCacheUsecase(boardRepository: sl()),
   );
 
   // Board Controller

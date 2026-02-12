@@ -4,6 +4,7 @@ import 'package:taskify/src/features/auth/data/data_sources/remote/auth_remote_d
 import 'package:taskify/src/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:taskify/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:taskify/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:taskify/src/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:taskify/src/features/auth/domain/usecases/register_usecase.dart';
 import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
 
@@ -25,9 +26,17 @@ void initAuthInjections() {
   sl.registerLazySingleton<RegisterUsecase>(
     () => RegisterUsecase(authRepository: sl()),
   );
+  sl.registerLazySingleton<LogoutUsecase>(
+    () => LogoutUsecase(authRepository: sl()),
+  );
 
   // Auth Provider
   sl.registerFactory(
-    () => AuthController(loginUsecase: sl(), registerUsecase: sl()),
+    () => AuthController(
+      loginUsecase: sl(),
+      logoutUsecase: sl(),
+      registerUsecase: sl(),
+      clearCacheUsecase: sl(),
+    ),
   );
 }
