@@ -12,6 +12,7 @@ import 'package:taskify/src/core/utils/input_validator.dart';
 import 'package:taskify/src/core/utils/responsive_helper.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:taskify/src/features/auth/presentation/widgets/auth_layout_builder.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -48,102 +49,107 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: AppColors.transparent,
           toolbarHeight: 0,
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: Text(
-                  'Taskify',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
+        body: AuthLayoutBuilder(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'Taskify',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Container(
-              height: 12,
-              width: w * 0.9,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(200),
-                  topRight: Radius.circular(200),
-                ),
-                color: AppColors.lightBlue.withValues(alpha: 0.8),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                Container(
+                  height: 12,
+                  width: w * 0.9,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(200),
+                      topRight: Radius.circular(200),
+                    ),
+                    color: AppColors.lightBlue.withValues(alpha: 0.8),
                   ),
                 ),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      vSpace40,
-                      Text(
-                        "Let's Get Started",
-                        style: Theme.of(context).textTheme.headlineMedium,
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
                       ),
-                      vSpace4,
-                      Text(
-                        'Sign in to your account',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-                      ),
-                      vSpace40,
+                    ),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        children: [
+                          vSpace40,
+                          Text(
+                            "Let's Get Started",
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                          vSpace4,
+                          Text(
+                            'Sign in to your account',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: AppColors.grey),
+                          ),
+                          vSpace40,
 
-                      KTextField(
-                        controller: emailCtlr,
-                        hintText: 'Email Address',
-                        validator: InputValidator.email,
-                        autovalidateMode: AutovalidateMode.onUnfocus,
-                      ),
-                      vSpace16,
-                      KTextField(
-                        isPassword: true,
-                        hintText: 'Password',
-                        controller: passwordCtlr,
-                        validator: InputValidator.required,
-                        autovalidateMode: AutovalidateMode.onUnfocus,
-                      ),
-                      vSpace8,
-                      buildForgotPasswordBtn(context),
-                      vSpace20,
-                      Selector<AuthController, bool>(
-                        selector: (context, ctlr) => ctlr.isBtnLoading,
-                        builder: (context, value, child) {
-                          return KFilledButton(
-                            text: 'Sign In',
-                            isLoading: value,
-                            onPressed: _onSignInPressed,
-                          );
-                        },
-                      ),
+                          KTextField(
+                            controller: emailCtlr,
+                            hintText: 'Email Address',
+                            validator: InputValidator.email,
+                            autovalidateMode: AutovalidateMode.onUnfocus,
+                          ),
+                          vSpace16,
+                          KTextField(
+                            isPassword: true,
+                            hintText: 'Password',
+                            controller: passwordCtlr,
+                            validator: InputValidator.required,
+                            autovalidateMode: AutovalidateMode.onUnfocus,
+                          ),
+                          vSpace8,
+                          buildForgotPasswordBtn(context),
+                          vSpace20,
+                          Selector<AuthController, bool>(
+                            selector: (context, ctlr) => ctlr.isBtnLoading,
+                            builder: (context, value, child) {
+                              return KFilledButton(
+                                text: 'Sign In',
+                                isLoading: value,
+                                onPressed: _onSignInPressed,
+                              );
+                            },
+                          ),
 
-                      Spacer(),
-                      KRichText(
-                        text1: "Don't have an account? ",
-                        text2: "Sign Up",
-                        padding: EdgeInsets.only(bottom: 8),
-                        onTap: () => context.push(AppRoutes.register),
+                          Spacer(),
+                          KRichText(
+                            text1: "Don't have an account? ",
+                            text2: "Sign Up",
+                            padding: EdgeInsets.only(bottom: 8),
+                            onTap: () => context.push(AppRoutes.register),
+                          ),
+                          vSpace16,
+                        ],
                       ),
-                      vSpace16,
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

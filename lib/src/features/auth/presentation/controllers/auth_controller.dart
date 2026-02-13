@@ -6,13 +6,22 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:taskify/src/core/common/custom_snackbar.dart';
 import 'package:taskify/src/features/auth/domain/entities/user_entity.dart';
 import 'package:taskify/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:taskify/src/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:taskify/src/features/auth/domain/usecases/register_usecase.dart';
+import 'package:taskify/src/features/boards/domain/usecases/clear_cache_usecase.dart';
 
 class AuthController extends ChangeNotifier {
   final LoginUsecase loginUsecase;
+  final LogoutUsecase logoutUsecase;
   final RegisterUsecase registerUsecase;
+  final ClearCacheUsecase clearCacheUsecase;
 
-  AuthController({required this.loginUsecase, required this.registerUsecase});
+  AuthController({
+    required this.loginUsecase,
+    required this.logoutUsecase,
+    required this.registerUsecase,
+    required this.clearCacheUsecase,
+  });
 
   bool isBtnLoading = false;
   bool isNetworkConnected = true;
@@ -119,5 +128,12 @@ class AuthController extends ChangeNotifier {
       isNetworkConnected = false;
     }
     notifyListeners();
+  }
+
+  Future<void> logout() async {
+    // Logout firebase
+    await logoutUsecase.call();
+    // Clear local cache
+    clearCacheUsecase.call();
   }
 }
