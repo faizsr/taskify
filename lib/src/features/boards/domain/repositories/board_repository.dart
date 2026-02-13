@@ -18,4 +18,6 @@ abstract class BoardRepository {
 
   Future<UserEntity?> getCurrentUser();
   Stream<List<UserEntity>> getAllUsers();
+
+  Future<void> clearCache();
 }

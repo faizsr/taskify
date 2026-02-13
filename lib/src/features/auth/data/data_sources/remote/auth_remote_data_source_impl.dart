@@ -82,4 +82,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
     return AuthResponse.error;
   }
+
+  @override
+  Future<void> logout() async {
+    await firebaseAuth.signOut();
+  }
 }

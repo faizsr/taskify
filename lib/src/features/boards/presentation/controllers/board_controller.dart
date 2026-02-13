@@ -256,7 +256,7 @@ class BoardController extends ChangeNotifier {
     }
   }
 
-  void clearOnLogout() {
+  void clearListeners() {
     _usersSub?.cancel();
     _boardsSub?.cancel();
     _boardSub?.cancel();

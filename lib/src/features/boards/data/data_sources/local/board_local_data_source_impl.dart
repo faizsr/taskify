@@ -51,7 +51,7 @@ class BoardLocalDataSourceImpl implements BoardLocalDataSource {
   }
 
   @override
-  Future<void> clearAll() async {
+  Future<void> clearCache() async {
     await boardsBox.clear();
     await usersBox.clear();
     await currentUserBox.clear();

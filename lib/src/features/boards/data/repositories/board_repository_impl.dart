@@ -101,4 +101,7 @@ class BoardRepositoryImpl implements BoardRepository {
   Future<void> updateTask(TaskEntity task) async {
     return await boardRemoteDataSource.updateTask(task.toModel());
   }
+
+  @override
+  Future<void> clearCache() => boardLocalDataSource.clearCache();
 }
